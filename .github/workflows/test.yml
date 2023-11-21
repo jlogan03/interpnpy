@@ -1,0 +1,38 @@
+name: test
+on:
+  pull_request:
+    branches: [ "*" ]
+  workflow_dispatch:
+  workflow_call:
+# on: [workflow_call]  # allow this workflow to be called from other workflows
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [x86_64]
+        python-version: ["3.9", "3.10", "3.11"]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+    # Rust
+    - name: Format
+      run: cargo fmt --check --verbose
+    - name: Lint
+      run: cargo clippy
+    - name: Build
+      run: cargo build --verbose
+    # Python
+    - name: Install - python
+      run: |
+        python -m venv ../env
+        source ../env/bin/activate
+        pip install maturin
+        maturin develop
+        pip install -e .[test]
+    - name: Format - python
+      run: source ../env/bin/activate; ruff check ./interpn
+    - name: Static typing - python
+      run: source ../env/bin/activate; pyright ./interpn
+    - name: Test - python
+      run: source ../env/bin/activate; pytest .
