@@ -20,7 +20,7 @@ For 1D interpolation, these methods will work, but special-purpose
 better.
 
 ### 3D interpolation
-The crunchiness of the RegularGridInterpolator values above 1e4 elements is repeatable)
+The crunchiness of the RegularGridInterpolator values above 1e4 elements is repeatable.
 ![3D](./no_prealloc.svg)
 
 ### 8D interpolation
