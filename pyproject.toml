@@ -1,0 +1,44 @@
+[build-system]
+requires = ["maturin>=1.3,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "interpn"
+version = "0.1.0"
+repository = "https://github.com/jlogan03/interpnpy"
+documentation = "https://interpn.readthedocs.io/"
+description = "N-dimensional interpolation/extrapolation methods"
+authors = [{ author = "James Logan", email = "jlogan03@gmail.com" }]
+requires-python = ">=3.9, <3.12"
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+dynamic = ["version"]
+dependencies = [
+    "numpy >= 1",
+    "pydantic >= 2.5.2",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest >= 7.4.3",
+    "coverage >= 7.3.2",
+    "ruff >= 0.1.6",
+    "pyright >= 1.1.337",
+    "mktestdocs >= 0.2.1"
+]
+bench = [
+    "scipy >= 1.11.4",
+    "matplotlib >= 3.8"
+]
+doc = [
+    "mkdocs >= 1.5.3",
+    "mkdocstrings-python >= 1.7.5",
+    "mkdocs-material >= 9.4.10"
+]
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+module-name = "interpn._interpn"
