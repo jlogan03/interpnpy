@@ -1,7 +1,7 @@
 # Performance
 
 More commentary about low-level perf scalings for each method
-can be found in the documentation for the Rust library.
+can be found in the [documentation for the Rust library](https://docs.rs/interpn/latest/interpn/).
 
 By comparison to `scipy.interpolate.RegularGridInterpolator`,
 the `interpn.MultilinearRegular` and `interpn.MultilinearRectilinear`

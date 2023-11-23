@@ -2,6 +2,8 @@
 
 Python bindings to the `interpn` Rust library for N-dimensional interpolation and extrapolation.
 
+Docs: https://interpnpy.readthedocs.io/en/latest/
+Repo: https://github.com/jlogan03/interpnpy
 
 # License
 Licensed under either of
