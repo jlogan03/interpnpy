@@ -43,12 +43,11 @@ macro_rules! interpn_regular_impl {
                 obs[0].readonly(),
                 obs[0].readonly(),
             ];
-            (0..obs.len()).for_each(|i| obsro[i] = obs[i].readonly());
+            (1..obs.len()).for_each(|i| obsro[i] = obs[i].readonly());
             obsro.iter().enumerate().try_for_each(|(i, x)| {
                 let res = x.as_slice();
                 match res {
                     Ok(xslice) => {
-                        // obsvec.push(xslice);
                         obsarr[i] = xslice;
                         Ok(())
                     }
@@ -124,19 +123,32 @@ macro_rules! check_bounds_regular_impl {
             let stepsro = steps.readonly();
             let steps = stepsro.as_slice()?;
 
-            let obsro: Vec<_> = obs.iter().map(|&x| x.readonly()).collect();
-            let mut obsvec: Vec<_> = Vec::with_capacity(obs.len());
-            obsro.iter().try_for_each(|x| {
+            // We need a mutable slice-of-slice,
+            // and it has to start with a reference to something
+            let dummy = [0.0; 0];
+            let mut obsarr: [&[$T]; MAXDIMS] = [&dummy[..]; MAXDIMS];
+            let mut obsro = [
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+            ];
+            (1..obs.len()).for_each(|i| obsro[i] = obs[i].readonly());
+            obsro.iter().enumerate().try_for_each(|(i, x)| {
                 let res = x.as_slice();
                 match res {
                     Ok(xslice) => {
-                        obsvec.push(xslice);
+                        obsarr[i] = xslice;
                         Ok(())
                     }
                     Err(e) => Err(e),
                 }
             })?;
-            let obs = &obsvec[..];
+            let obs = &obsarr[..obs.len()];
 
             // Get output as mutable
             let mut outrw = out.try_readwrite()?;
@@ -191,36 +203,63 @@ macro_rules! interpn_rectilinear_impl {
             out: &PyArray1<$T>,
         ) -> PyResult<()> {
             // Unpack inputs
-            let gridsro: Vec<_> = grids.iter().map(|&x| x.readonly()).collect();
-            let mut gridsvec: Vec<_> = Vec::with_capacity(obs.len());
-            gridsro.iter().try_for_each(|x| {
+
+            // We need a mutable slice-of-slice,
+            // and it has to start with a reference to something
+            let dummy = [0.0; 0];
+            let mut gridsarr: [&[$T]; MAXDIMS] = [&dummy[..]; MAXDIMS];
+            let mut gridsro = [
+                grids[0].readonly(),
+                grids[0].readonly(),
+                grids[0].readonly(),
+                grids[0].readonly(),
+                grids[0].readonly(),
+                grids[0].readonly(),
+                grids[0].readonly(),
+                grids[0].readonly(),
+            ];
+            (1..grids.len()).for_each(|i| gridsro[i] = grids[i].readonly());
+            gridsro.iter().enumerate().try_for_each(|(i, x)| {
                 let res = x.as_slice();
                 match res {
                     Ok(xslice) => {
-                        gridsvec.push(xslice);
+                        gridsarr[i] = xslice;
                         Ok(())
                     }
                     Err(e) => Err(e),
                 }
             })?;
-            let grids = &gridsvec[..];
+            let grids = &gridsarr[..grids.len()];
 
             let valsro = vals.readonly();
             let vals = valsro.as_slice()?;
 
-            let obsro: Vec<_> = obs.iter().map(|&x| x.readonly()).collect();
-            let mut obsvec: Vec<_> = Vec::with_capacity(obs.len());
-            obsro.iter().try_for_each(|x| {
+            // We need a mutable slice-of-slice,
+            // and it has to start with a reference to something
+            let dummy = [0.0; 0];
+            let mut obsarr: [&[$T]; MAXDIMS] = [&dummy[..]; MAXDIMS];
+            let mut obsro = [
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+            ];
+            (1..obs.len()).for_each(|i| obsro[i] = obs[i].readonly());
+            obsro.iter().enumerate().try_for_each(|(i, x)| {
                 let res = x.as_slice();
                 match res {
                     Ok(xslice) => {
-                        obsvec.push(xslice);
+                        obsarr[i] = xslice;
                         Ok(())
                     }
                     Err(e) => Err(e),
                 }
             })?;
-            let obs = &obsvec[..];
+            let obs = &obsarr[..obs.len()];
 
             // Get output as mutable
             let mut outrw = out.try_readwrite()?;
@@ -275,33 +314,60 @@ macro_rules! check_bounds_rectilinear_impl {
             out: &PyArray1<bool>,
         ) -> PyResult<()> {
             // Unpack inputs
-            let gridsro: Vec<_> = grids.iter().map(|&x| x.readonly()).collect();
-            let mut gridsvec: Vec<_> = Vec::with_capacity(obs.len());
-            gridsro.iter().try_for_each(|x| {
-                let res = x.as_slice();
-                match res {
-                    Ok(xslice) => {
-                        gridsvec.push(xslice);
-                        Ok(())
-                    }
-                    Err(e) => Err(e),
-                }
-            })?;
-            let grids = &gridsvec[..];
 
-            let obsro: Vec<_> = obs.iter().map(|&x| x.readonly()).collect();
-            let mut obsvec: Vec<_> = Vec::with_capacity(obs.len());
-            obsro.iter().try_for_each(|x| {
+            // We need a mutable slice-of-slice,
+            // and it has to start with a reference to something
+            let dummy = [0.0; 0];
+            let mut gridsarr: [&[$T]; MAXDIMS] = [&dummy[..]; MAXDIMS];
+            let mut gridsro = [
+                grids[0].readonly(),
+                grids[0].readonly(),
+                grids[0].readonly(),
+                grids[0].readonly(),
+                grids[0].readonly(),
+                grids[0].readonly(),
+                grids[0].readonly(),
+                grids[0].readonly(),
+            ];
+            (1..grids.len()).for_each(|i| gridsro[i] = grids[i].readonly());
+            gridsro.iter().enumerate().try_for_each(|(i, x)| {
                 let res = x.as_slice();
                 match res {
                     Ok(xslice) => {
-                        obsvec.push(xslice);
+                        gridsarr[i] = xslice;
                         Ok(())
                     }
                     Err(e) => Err(e),
                 }
             })?;
-            let obs = &obsvec[..];
+            let grids = &gridsarr[..grids.len()];
+
+            // We need a mutable slice-of-slice,
+            // and it has to start with a reference to something
+            let dummy = [0.0; 0];
+            let mut obsarr: [&[$T]; MAXDIMS] = [&dummy[..]; MAXDIMS];
+            let mut obsro = [
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+                obs[0].readonly(),
+            ];
+            (1..obs.len()).for_each(|i| obsro[i] = obs[i].readonly());
+            obsro.iter().enumerate().try_for_each(|(i, x)| {
+                let res = x.as_slice();
+                match res {
+                    Ok(xslice) => {
+                        obsarr[i] = xslice;
+                        Ok(())
+                    }
+                    Err(e) => Err(e),
+                }
+            })?;
+            let obs = &obsarr[..obs.len()];
 
             // Get output as mutable
             let mut outrw = out.try_readwrite()?;
