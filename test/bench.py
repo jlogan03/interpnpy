@@ -355,5 +355,5 @@ def bench_8_dims_n_obs_unordered():
 
 if __name__ == "__main__":
     bench_8_dims_1_obs()
-    bench_8_dims_n_obs_unordered()
     bench_3_dims_n_obs_unordered()
+    bench_8_dims_n_obs_unordered()
