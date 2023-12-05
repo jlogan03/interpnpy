@@ -33,6 +33,9 @@ macro_rules! interpn_regular_impl {
             // and it has to start with a reference to something
             let dummy = [0.0; 0];
             let mut obsarr: [&[$T]; MAXDIMS] = [&dummy[..]; MAXDIMS];
+            // PyArray readonly references are very lightweight
+            // but aren't Copy, so we can't template them out like
+            // [...; 8]
             let mut obsro = [
                 obs[0].readonly(),
                 obs[0].readonly(),
@@ -127,6 +130,9 @@ macro_rules! check_bounds_regular_impl {
             // and it has to start with a reference to something
             let dummy = [0.0; 0];
             let mut obsarr: [&[$T]; MAXDIMS] = [&dummy[..]; MAXDIMS];
+            // PyArray readonly references are very lightweight
+            // but aren't Copy, so we can't template them out like
+            // [...; 8]
             let mut obsro = [
                 obs[0].readonly(),
                 obs[0].readonly(),
@@ -208,6 +214,9 @@ macro_rules! interpn_rectilinear_impl {
             // and it has to start with a reference to something
             let dummy = [0.0; 0];
             let mut gridsarr: [&[$T]; MAXDIMS] = [&dummy[..]; MAXDIMS];
+            // PyArray readonly references are very lightweight
+            // but aren't Copy, so we can't template them out like
+            // [...; 8]
             let mut gridsro = [
                 grids[0].readonly(),
                 grids[0].readonly(),
@@ -238,6 +247,9 @@ macro_rules! interpn_rectilinear_impl {
             // and it has to start with a reference to something
             let dummy = [0.0; 0];
             let mut obsarr: [&[$T]; MAXDIMS] = [&dummy[..]; MAXDIMS];
+            // PyArray readonly references are very lightweight
+            // but aren't Copy, so we can't template them out like
+            // [...; 8]
             let mut obsro = [
                 obs[0].readonly(),
                 obs[0].readonly(),
@@ -319,6 +331,9 @@ macro_rules! check_bounds_rectilinear_impl {
             // and it has to start with a reference to something
             let dummy = [0.0; 0];
             let mut gridsarr: [&[$T]; MAXDIMS] = [&dummy[..]; MAXDIMS];
+            // PyArray readonly references are very lightweight
+            // but aren't Copy, so we can't template them out like
+            // [...; 8]
             let mut gridsro = [
                 grids[0].readonly(),
                 grids[0].readonly(),
