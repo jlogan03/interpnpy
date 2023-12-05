@@ -72,7 +72,7 @@ class MultilinearRegular(BaseModel):
         return interpolator
 
     @model_validator(mode="after")
-    def _validate_model(self) -> MultilinearRegular:
+    def _validate_model(self):
         """Check that all inputs are contiguous and of the same data type,
         and that the grid dimensions and values make sense."""
         ndims = self.ndims()

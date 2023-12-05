@@ -6,7 +6,9 @@ Rust docs: https://docs.rs/interpn/latest/interpn/
 This library provides serializable N-dimensional interpolators
 backed by compute-heavy code written in Rust.
 
-These methods perform near zero allocation (except, optionally, for the output). Because of this, they have minimal per-call overhead, and are particularly effective when examining small numbers of observation points.
+These methods perform zero allocation when evaluated (except, optionally, for the output). 
+Because of this, they have minimal per-call overhead, and are particularly
+effective when examining small numbers of observation points.
 
 # Example: Multilinear Interpolation on a Regular Grid
 ```python

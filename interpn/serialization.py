@@ -16,6 +16,9 @@ from pydantic import (
 
 
 class ArrayF64(BaseModel):
+    """
+    Serializable wrapper for NDArray[float64].
+    """
     data: NDArray[np.float64]
     dtype: Literal["float64"] = "float64"
 
@@ -40,6 +43,12 @@ class ArrayF64(BaseModel):
 
 
 class ArrayF32(BaseModel):
+    """
+    Serializable wrapper for NDArray[float32].
+    
+    The data is represented as a list of float64 on disk and in RAM 
+    during serialization and deserialization.
+    """
     data: NDArray[np.float32]
     dtype: Literal["float32"] = "float32"
 
