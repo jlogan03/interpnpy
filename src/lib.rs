@@ -98,9 +98,10 @@ macro_rules! interpn_regular_impl {
             }
 
             // Evaluate
-            regular::interpn(&dims, starts, steps, vals, obs, out);
-
-            Ok(())
+            match regular::interpn(&dims, starts, steps, vals, obs, out) {
+                Ok(()) => Ok(()),
+                Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
+            }
         }
     };
 }
@@ -189,9 +190,10 @@ macro_rules! check_bounds_regular_impl {
             }
 
             // Evaluate
-            regular::check_bounds(&dims, starts, steps, obs, atol, out);
-
-            Ok(())
+            match regular::check_bounds(&dims, starts, steps, obs, atol, out) {
+                Ok(()) => Ok(()),
+                Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
+            }
         }
     };
 }
@@ -306,9 +308,10 @@ macro_rules! interpn_rectilinear_impl {
             }
 
             // Evaluate
-            rectilinear::interpn(grids, vals, obs, out);
-
-            Ok(())
+            match rectilinear::interpn(grids, vals, obs, out) {
+                Ok(()) => Ok(()),
+                Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
+            }
         }
     };
 }
@@ -410,9 +413,10 @@ macro_rules! check_bounds_rectilinear_impl {
             }
 
             // Evaluate
-            rectilinear::check_bounds(&grids, obs, atol, out);
-
-            Ok(())
+            match rectilinear::check_bounds(&grids, obs, atol, out) {
+                Ok(()) => Ok(()),
+                Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
+            }
         }
     };
 }
