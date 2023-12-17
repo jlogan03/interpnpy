@@ -118,12 +118,6 @@ class MultilinearRectilinear(BaseModel):
         assert all(
             [x.dtype == dtype for x in obs]
         ), f"Observation point data types do not match interpolator ({dtype})"
-        assert all(
-            [x.size == obs[0].size for x in obs]
-        ), "Observation point coordinate lengths do not match"
-        assert all(
-            [x.data.contiguous for x in obs]
-        ), "Observation point data must be contiguous"
 
         # Allocate output if it was not provided,
         # then check data type and contiguousness
@@ -131,8 +125,6 @@ class MultilinearRectilinear(BaseModel):
         assert (
             out_inner.dtype == dtype
         ), f"Output data type does not match interpolator data type ({dtype})"
-        assert out_inner.data.contiguous, "Output data must be contiguous"
-        assert out_inner.size == obs[0].size, "Output data length does not match input"
 
         self.eval_unchecked(obs, out_inner)
 
