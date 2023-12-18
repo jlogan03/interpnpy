@@ -85,8 +85,8 @@ class MultilinearRegular(BaseModel):
             lambda acc, x: acc * x, self.dims
         ), "Size of value array does not match grid dims"
         assert all(
-            [x != 0.0 for x in self.steps.data]
-        ), "All grid steps must be nonzero magnitude"
+            [x > 0.0 for x in self.steps.data]
+        ), "All grid steps must be positive and nonzero"
         assert all(
             [x.data.dtype == self.vals.data.dtype for x in [self.steps, self.vals]]
         ), "All grid inputs must be of the same data type (np.float32 or np.float64)"
@@ -117,19 +117,8 @@ class MultilinearRegular(BaseModel):
         Returns:
             Array of evaluated values in the same shape and data type as obs[0]
         """
-        # Check inputs
-        dtype = self.vals.data.dtype
-        assert all(
-            [x.dtype == dtype for x in obs]
-        ), f"Observation point data types do not match interpolator ({dtype})"
-
-        # Allocate output if it was not provided,
-        # then check data type and contiguousness
+        # Allocate output if it was not provided
         out_inner = out if out is not None else np.zeros_like(obs[0])
-        assert (
-            out_inner.dtype == dtype
-        ), f"Output data type does not match interpolator data type ({dtype})"
-
         self.eval_unchecked(obs, out_inner)
 
         return out_inner

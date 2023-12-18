@@ -113,19 +113,9 @@ class MultilinearRectilinear(BaseModel):
         Returns:
             Array of evaluated values in the same shape and data type as obs[0]
         """
-        # Check inputs
-        dtype = self.vals.data.dtype
-        assert all(
-            [x.dtype == dtype for x in obs]
-        ), f"Observation point data types do not match interpolator ({dtype})"
-
         # Allocate output if it was not provided,
         # then check data type and contiguousness
         out_inner = out if out is not None else np.zeros_like(obs[0])
-        assert (
-            out_inner.dtype == dtype
-        ), f"Output data type does not match interpolator data type ({dtype})"
-
         self.eval_unchecked(obs, out_inner)
 
         return out_inner
