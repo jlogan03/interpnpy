@@ -17,5 +17,6 @@ __all__ = [
     "__version__",
     "MultilinearRegular",
     "MultilinearRectilinear",
+    "MulticubicRegular",
     "raw",
 ]

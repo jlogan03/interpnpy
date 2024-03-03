@@ -293,8 +293,12 @@ def bench_6_dims_n_obs_unordered():
         rectilinear_sp = RegularGridInterpolator(
             grids, zgrid.reshape(xgrid[0].shape), bounds_error=None
         )
+        cubic_rectilinear_sp = RegularGridInterpolator(
+            grids, zgrid.reshape(xgrid[0].shape), bounds_error=None, method="cubic"
+        )
         rectilinear_interpn = MultilinearRectilinear.new(grids, zgrid)
         regular_interpn = MultilinearRegular.new(dims, starts, steps, zgrid)
+        cubic_regular_interpn = MulticubicRegular.new(dims, starts, steps, zgrid)
 
         throughputs = {
             "scipy RegularGridInterpolator Linear": [],
@@ -386,4 +390,4 @@ def bench_6_dims_n_obs_unordered():
 if __name__ == "__main__":
     bench_6_dims_1_obs()
     bench_3_dims_n_obs_unordered()
-    bench_8_dims_n_obs_unordered()
+    bench_6_dims_n_obs_unordered()
