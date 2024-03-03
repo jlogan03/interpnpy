@@ -160,7 +160,7 @@ def bench_6_dims_1_obs():
 
 
 def bench_3_dims_n_obs_unordered():
-    nbench = 1000  # Bench iterations
+    nbench = 10  # Bench iterations
 
     for preallocate in [False, True]:
         ndims = 3  # Number of grid dimensions
@@ -193,8 +193,9 @@ def bench_3_dims_n_obs_unordered():
             "interpn MultilinearRectilinear": [],
             "interpn MulticubicRegular": [],
         }
-        ns = np.logspace(0, 5, 40, base=10)
+        ns = np.logspace(0, 5, 10, base=10)
         ns = [int(x) for x in ns]
+        ns = sorted(list(set(ns)))
         # ns = [1, 10, 100, 1000, 10000, 50000, 100000]
         print("\nThroughput plotting")
         print(ns)
@@ -245,36 +246,39 @@ def bench_3_dims_n_obs_unordered():
                 throughput = nobs / t
                 throughputs[name].append(throughput)
 
-        linestyles = ["dotted", "-", "--"]
-        alpha = [0.5, 1.0, 1.0]
-        plt.figure(figsize=(12, 8))
-        all_throughputs = sum([v for v in throughputs.values()], [])
-        max_throughput = max(all_throughputs)
-        for i, (k, v) in enumerate(throughputs.items()):
-            normalized_throughput = np.array(v) / max_throughput
-            plt.loglog(
-                ns,
-                normalized_throughput,
-                color="k",
-                linewidth=2,
-                linestyle=linestyles[i],
-                label=k,
-                alpha=alpha[i],
+        linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
+        alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
+
+        for kind in ["Linear", "Cubic"]:
+            plt.figure(figsize=(12, 8))
+            throughputs_this_kind = [(k,v) for k, v in throughputs.items() if kind.lower() in k.lower()]
+            all_throughputs_this_kind = sum([v for _, v in throughputs_this_kind], [])
+            max_throughput = max(all_throughputs_this_kind)
+            for i, (k, v) in enumerate(throughputs_this_kind):
+                normalized_throughput = np.array(v) / max_throughput
+                plt.loglog(
+                    ns,
+                    normalized_throughput,
+                    color="k",
+                    linewidth=2,
+                    linestyle=linestyles[i],
+                    label=k,
+                    alpha=alpha[i],
+                )
+            plt.legend()
+            plt.xlabel("Number of Observation Points")
+            plt.ylabel("Normalized Throughput [1/s]")
+            with_alloc_string = (
+                "\nWith Preallocated Output"
+                if preallocate
+                else "\nWithout Preallocated Output"
             )
-        plt.legend()
-        plt.xlabel("Number of Observation Points")
-        plt.ylabel("Normalized Throughput [1/s]")
-        with_alloc_string = (
-            "\nWith Preallocated Output"
-            if preallocate
-            else "\nWithout Preallocated Output"
-        )
-        plt.title("Interpolation on 20x20x20 Grid" + with_alloc_string)
+            plt.title(f"{kind} Interpolation on 20x20x20 Grid" + with_alloc_string)
         plt.show()
 
 
 def bench_6_dims_n_obs_unordered():
-    nbench = 100  # Bench iterations
+    nbench = 10  # Bench iterations
 
     for preallocate in [False, True]:
         ndims = 6  # Number of grid dimensions
@@ -359,8 +363,8 @@ def bench_6_dims_n_obs_unordered():
                 throughput = nobs / t
                 throughputs[name].append(throughput)
 
-        linestyles = ["dotted", "-", "--"]
-        alpha = [0.5, 1.0, 1.0]
+        linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
+        alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
         plt.figure(figsize=(12, 8))
         all_throughputs = sum([v for v in throughputs.values()], [])
         max_throughput = max(all_throughputs)
