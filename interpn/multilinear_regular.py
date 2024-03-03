@@ -15,8 +15,8 @@ from pydantic import (
 from .serialization import Array, ArrayF32, ArrayF64
 
 from ._interpn import (
-    interpn_regular_f64,
-    interpn_regular_f32,
+    interpn_linear_regular_f64,
+    interpn_linear_regular_f32,
     check_bounds_regular_f64,
     check_bounds_regular_f32,
 )
@@ -148,7 +148,7 @@ class MultilinearRegular(BaseModel):
         out_inner = out if out is not None else np.zeros_like(obs[0])
 
         if dtype == np.float64:
-            interpn_regular_f64(
+            interpn_linear_regular_f64(
                 self.dims,
                 self.starts.data,
                 self.steps.data,
@@ -157,7 +157,7 @@ class MultilinearRegular(BaseModel):
                 out_inner,
             )
         elif dtype == np.float32:
-            interpn_regular_f32(
+            interpn_linear_regular_f32(
                 self.dims,
                 self.starts.data,
                 self.steps.data,

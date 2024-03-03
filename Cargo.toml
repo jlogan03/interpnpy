@@ -11,14 +11,15 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = "0.20.0"
 numpy = "0.20.0"
-interpn = "0.3.0"
-# interpn = { path = "../interpn/interpn" }
+#interpn = "0.3.0"
+interpn = { path = "../interpn/interpn" }
 
 [profile.release]
 opt-level = 3
 codegen-units = 1
 lto = true
 strip = true
+overflow-checks = true
 
 [profile.dev]
 opt-level = 3

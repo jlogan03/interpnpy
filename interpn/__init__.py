@@ -8,6 +8,7 @@ from importlib.metadata import version
 
 from .multilinear_regular import MultilinearRegular
 from .multilinear_rectilinear import MultilinearRectilinear
+from .multicubic_regular import MulticubicRegular
 from interpn import raw
 
 __version__ = version("interpn")

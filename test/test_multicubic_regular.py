@@ -2,10 +2,11 @@ import numpy as np
 import interpn
 
 
-def test_multilinear_regular():
-    for dtype in [np.float64, np.float32]:
-        x = np.linspace(0.0, 10.0, 5).astype(dtype)
-        y = np.linspace(20.0, 30.0, 3).astype(dtype)
+def test_multicubic_regular():
+
+    for (dtype, tol) in [(np.float64, 1e-12), (np.float32, 1e-6)]:
+        x = np.linspace(0.0, 10.0, 7).astype(dtype)
+        y = np.linspace(20.0, 30.0, 5).astype(dtype)
 
         xgrid, ygrid = np.meshgrid(x, y, indexing="ij")
         zgrid = (xgrid + 2.0 * ygrid).astype(dtype)  # Values at grid points
@@ -23,7 +24,7 @@ def test_multilinear_regular():
 
         # Do interpolation
         if dtype == np.float32:
-            interpn.raw.interpn_linear_regular_f32(
+            interpn.raw.interpn_cubic_regular_f32(
                 dims,
                 starts,
                 steps,
@@ -32,7 +33,7 @@ def test_multilinear_regular():
                 out,
             )
         else:
-            interpn.raw.interpn_linear_regular_f64(
+            interpn.raw.interpn_cubic_regular_f64(
                 dims,
                 starts,
                 steps,
@@ -44,10 +45,10 @@ def test_multilinear_regular():
         # Check results
         zf = zgrid.flatten()
         for i in range(out.size):
-            assert out[i] == zf[i]
+            assert approx(out[i], zf[i], dtype(tol))
 
         # Do interpolation using class
-        interpolator = interpn.MultilinearRegular.new(
+        interpolator = interpn.MulticubicRegular.new(
             dims, starts, steps, zgrid.flatten()
         )
         out2 = interpolator.eval(obs)
@@ -55,7 +56,7 @@ def test_multilinear_regular():
         # Check results
         zf = zgrid.flatten()
         for i in range(out2.size):
-            assert out2[i] == zf[i]
+            assert approx(out2[i], zf[i], dtype(tol))
 
         # Exercise check_bounds
         definitely_inside = [
@@ -70,7 +71,7 @@ def test_multilinear_regular():
         assert any(interpolator.check_bounds(definitely_outside, dtype(1e-6)))
 
         # Test roundtrip serialization
-        roundtrip_interpolator = interpn.MultilinearRegular.model_validate_json(
+        roundtrip_interpolator = interpn.MulticubicRegular.model_validate_json(
             interpolator.model_dump_json()
         )
         out3 = roundtrip_interpolator.eval(obs)
@@ -78,4 +79,10 @@ def test_multilinear_regular():
         # Check results
         zf = zgrid.flatten()
         for i in range(out3.size):
-            assert out3[i] == zf[i]
+            assert approx(out3[i], zf[i], dtype(tol))
+
+
+def approx(value_is, value_should_be, tol) -> bool:
+    delta = abs(value_is - value_should_be)
+    norm = max(abs(value_should_be), 1.0)  # Don't artifically inflate error near zero
+    return delta / norm < tol
