@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 import matplotlib.pyplot as plt
@@ -73,4 +74,6 @@ if __name__ == "__main__":
         plt.colorbar()
         plt.legend()
 
-    plt.show()
+    testing = (len(sys.argv) > 1) and (sys.argv[1] == "test")
+    if not testing:
+        plt.show()
