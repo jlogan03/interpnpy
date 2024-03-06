@@ -11,12 +11,13 @@ The methods provided here, while more limited in scope than scipy's, are
 * use almost no RAM (and perform no heap allocations at all)
 * produce significantly improved floating-point error (by 1-2 orders of magnitude)
 * are json-serializable using Pydantic
+* can also be used easily in web and embedded applications via the Rust library
 
 Docs: https://interpnpy.readthedocs.io/en/latest/
 
 Repo: https://github.com/jlogan03/interpnpy
 
-
+Rust library: https://github.com/jlogan03/interpn
 
 # License
 Licensed under either of
