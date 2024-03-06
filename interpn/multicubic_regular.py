@@ -48,10 +48,11 @@ class MulticubicRegular(BaseModel):
     starts: Array
     steps: Array
     vals: Array
+    linearize_extrapolation: bool
 
     @classmethod
     def new(
-        cls, dims: list[int], starts: NDArray, steps: NDArray, vals: NDArray
+        cls, dims: list[int], starts: NDArray, steps: NDArray, vals: NDArray, linearize_extrapolation: bool = False
     ) -> MulticubicRegular:
         """
         Initialize interpolator and check types and dimensions, casting other arrays
@@ -67,6 +68,8 @@ class MulticubicRegular(BaseModel):
             steps: Step size on each dimension of the grid
             vals: Values at grid points in C-style ordering,
                   as obtained from np.meshgrid(..., indexing="ij")
+            linearize_extrapolation: Whether to fall back to a linear
+                interpolant outside the grid
 
         Returns:
             A new MulticubicRegular interpolator instance.
@@ -78,6 +81,7 @@ class MulticubicRegular(BaseModel):
             starts=arrtype(data=starts.flatten()),
             steps=arrtype(data=steps.flatten()),
             vals=arrtype(data=vals.flatten()),
+            linearize_extrapolation=linearize_extrapolation,
         )
 
         return interpolator
@@ -164,6 +168,7 @@ class MulticubicRegular(BaseModel):
                 self.starts.data,
                 self.steps.data,
                 self.vals.data,
+                self.linearize_extrapolation,
                 obs,
                 out_inner,
             )
@@ -173,6 +178,7 @@ class MulticubicRegular(BaseModel):
                 self.starts.data,
                 self.steps.data,
                 self.vals.data,
+                self.linearize_extrapolation,
                 obs,
                 out_inner,
             )

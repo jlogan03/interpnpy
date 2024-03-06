@@ -179,6 +179,7 @@ macro_rules! interpn_cubic_regular_impl {
             starts: &PyArray1<$T>,
             steps: &PyArray1<$T>,
             vals: &PyArray1<$T>,
+            linearize_extrapolation: bool,
             obs: Vec<&PyArray1<$T>>,
             out: &PyArray1<$T>,
         ) -> PyResult<()> {
@@ -199,7 +200,7 @@ macro_rules! interpn_cubic_regular_impl {
             let out = outrw.as_slice_mut()?;
 
             // Evaluate
-            match multicubic::regular::interpn(&dims, starts, steps, vals, obs, out) {
+            match multicubic::regular::interpn(&dims, starts, steps, vals, linearize_extrapolation, obs, out) {
                 Ok(()) => Ok(()),
                 Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
             }
