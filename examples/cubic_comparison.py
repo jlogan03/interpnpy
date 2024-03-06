@@ -3,7 +3,7 @@ import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 import matplotlib.pyplot as plt
 
-from interpn import MultilinearRectilinear, MultilinearRegular, MulticubicRegular
+from interpn import MulticubicRegular
 
 if __name__ == "__main__":
     # 1D comparison
