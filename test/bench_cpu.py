@@ -1,3 +1,4 @@
+"""Benchmarks examining throughput"""
 import gc
 
 from timeit import timeit

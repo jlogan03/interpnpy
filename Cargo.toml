@@ -11,8 +11,8 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = "0.20.0"
 numpy = "0.20.0"
-#interpn = "0.3.0"
-interpn = { path = "../interpn/interpn" }
+interpn = "0.4.1"
+#interpn = { path = "../interpn/interpn" }
 
 [profile.release]
 opt-level = 3

@@ -49,7 +49,9 @@ checksum = "1e186cfbae8084e513daff4240b4797e342f988cecda4fb6c939150f96315fd8"
 
 [[package]]
 name = "interpn"
-version = "0.4.0"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "82ec859d62d17054a7314d5bb47d7e4eeb4648b87b7c1e0e33de1d4df21e0375"
 dependencies = [
  "itertools",
  "num-traits",

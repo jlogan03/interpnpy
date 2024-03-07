@@ -1,6 +1,7 @@
 # Quickstart
 
 Repo: https://github.com/jlogan03/interpnpy
+
 Rust docs: https://docs.rs/interpn/latest/interpn/
 
 This library provides serializable N-dimensional interpolators

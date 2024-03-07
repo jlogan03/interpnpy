@@ -5,34 +5,49 @@ import matplotlib.pyplot as plt
 
 from interpn import MulticubicRegular
 
+def _step(x):
+    y = np.ones_like(x)
+    y[np.where(x < 0.0)] = 0.0
+    y[np.where(x >= 0.0)] = 1.0
+    return y
+
 if __name__ == "__main__":
     # 1D comparison
-    xdata = np.arange(-2.0, 2.5, 0.5)
-    ydata = xdata ** 2
+    _fig, axes = plt.subplots(2, 3, sharex=True, figsize=(14, 8))
+    axes = axes.flatten()
+    plt.suptitle("Comparison\nInterpN MulticubicRegular vs. Scipy RegularGridInterpolator Cubic")
+    for i, (fnname, fn, data_res) in enumerate([("Quadratic", lambda x: x**2, 0.5), ("Sine", lambda x: np.sin(x), 0.5), ("Step", lambda x: _step(x), 0.1)]):
+        xdata = np.arange(-2.0, 2.5, data_res)
+        ydata = fn(xdata)
 
-    xinterp = np.arange(-3.0, 3.05, 0.05)
+        xinterp = np.arange(-3.0, 3.05, data_res / 100)
 
-    dims = np.asarray([xdata.size])
-    starts = np.asarray([-2.0])
-    steps = np.asarray([0.5])
-    y_interpn = MulticubicRegular.new(dims, starts, steps, ydata).eval([xinterp])
+        dims = np.asarray([xdata.size])
+        starts = np.asarray([-2.0])
+        steps = np.asarray([data_res])
+        y_interpn = MulticubicRegular.new(dims, starts, steps, ydata).eval([xinterp])
 
-    y_sp = RegularGridInterpolator(
-        [xdata], ydata, bounds_error=None, method="cubic"
-    )(xinterp)
+        y_sp = RegularGridInterpolator(
+            [xdata], ydata, bounds_error=None, fill_value=None, method="cubic"
+        )(xinterp)
 
-    plt.figure(figsize=(12, 8))
-    plt.scatter(xdata, ydata, marker='o', color='k', s=20, label="Data")
-    plt.plot(xinterp, y_interpn, color='k', linewidth=2, linestyle="-", label="Interpn MulticubicRegular")
-    plt.plot(xinterp, y_sp, color='k', linewidth=3, linestyle="dotted", label="Scipy RegularGridInterpolator Cubic")
-    plt.legend()
+        plt.sca(axes[i])
+        plt.gca().fill_between(xdata, 0, 1,
+                color='green', alpha=0.1, transform=plt.gca().get_xaxis_transform(), label="Interpolating Region")
+        plt.scatter(xdata, ydata, marker='o', color='k', s=20, label="Data")
+        plt.plot(xinterp, y_interpn, color='k', linewidth=1, linestyle="-", label="InterpN")
+        plt.plot(xinterp, y_sp, color='k', linewidth=2, linestyle=(0, (1, 1)), alpha=0.5, label="Scipy")
+        plt.title(fnname)
+        plt.legend()
 
-    plt.figure(figsize=(12, 8))
-    inds = np.where(np.where(xinterp >= -2.05, True, False) * np.where(xinterp <= 2.0, True, False))
-    # plt.scatter(xdata, ydata, marker='o', color='k', s=20, label="Data")
-    plt.plot(xinterp[inds], (y_interpn - xinterp**2)[inds], color='k', linewidth=2, linestyle="-", label="Error, Interpn MulticubicRegular")
-    plt.plot(xinterp[inds], (y_sp - xinterp**2)[inds], color='k', linewidth=3, linestyle="dotted", label="Error, Scipy RegularGridInterpolator Cubic")
-    plt.legend()
+        plt.sca(axes[i + 3])
+        plt.gca().fill_between(xdata, 0, 1,
+                color='green', alpha=0.1, transform=plt.gca().get_xaxis_transform(), label="Interpolating Region")
+        plt.plot(xinterp, (y_interpn - fn(xinterp)), color='k', linewidth=1, linestyle="-", label="InterpN")
+        plt.plot(xinterp, (y_sp - fn(xinterp)), color='k', linewidth=2, linestyle=(0, (1, 1)), alpha=0.5, label="Scipy")
+
+        plt.title("Error, " + fnname)
+        plt.legend()
 
     # 2D comparison
     xdata = np.linspace(-3.0, 3.0, 6, endpoint=True)
@@ -58,7 +73,7 @@ if __name__ == "__main__":
     _fig, axes = plt.subplots(2, 3, figsize=(12, 8))
     axes = axes.flatten()
     plt.suptitle("Quadratic Test Function")
-    for i, (z, title) in enumerate([(zinterp, "Truth"), (z_interpn, "Interpn MulticubicRegular"), (z_sp, "Scipy RegularGridInterp. Cubic")]):
+    for i, (z, title) in enumerate([(zinterp, "Truth"), (z_interpn, "InterpN MulticubicRegular"), (z_sp, "Scipy RegularGridInterp. Cubic")]):
         plt.sca(axes[i])
         plt.imshow(z.T, origin="lower", extent=[-5.0, 5.0, -5.0, 5.0])
         plt.contour(xinterpmesh, yinterpmesh, z.T, colors='k', levels=6)
@@ -69,7 +84,7 @@ if __name__ == "__main__":
         plt.sca(axes[i + 3])
         plt.imshow((z - zinterp).T, origin="lower", extent=[-5.0, 5.0, -5.0, 5.0])
         plt.gca().add_patch(plt.Rectangle((-3.0, -3.0), 6.0, 6.0, edgecolor='w', fill=False, label="Interpolating Region"))
-        plt.title("Error\n" + title)
+        plt.title("Error, " + title.split()[0])
         plt.axis("off")
         plt.colorbar()
         plt.legend()
