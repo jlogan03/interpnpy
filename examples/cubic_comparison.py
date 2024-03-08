@@ -16,7 +16,7 @@ if __name__ == "__main__":
     _fig, axes = plt.subplots(2, 3, sharex=True, figsize=(14, 8))
     axes = axes.flatten()
     plt.suptitle("Comparison\nInterpN MulticubicRegular vs. Scipy RegularGridInterpolator Cubic")
-    for i, (fnname, fn, data_res) in enumerate([("Quadratic", lambda x: x**2, 0.5), ("Sine", lambda x: np.sin(x), 0.5), ("Step", lambda x: _step(x), 0.1)]):
+    for i, (fnname, fn, data_res) in enumerate([("Quadratic", lambda x: x**2, 0.5), ("Sine", lambda x: np.sin(x), 0.5), ("Step", lambda x: _step(x), 0.5)]):
         xdata = np.arange(-2.0, 2.5, data_res)
         ydata = fn(xdata)
 

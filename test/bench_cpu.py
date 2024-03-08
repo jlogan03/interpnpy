@@ -252,8 +252,11 @@ def bench_3_dims_n_obs_unordered():
         linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
         alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
 
-        for kind in ["Linear", "Cubic"]:
-            plt.figure(figsize=(12, 8))
+        _fig, axes = plt.subplots(1,2, figsize=(12,6))
+        plt.suptitle("Interpolation on 20x20x20 Grid")
+        for i, kind in enumerate(["Linear", "Cubic"]):
+            # plt.figure()
+            plt.sca(axes[i])
             throughputs_this_kind = [(k,v) for k, v in throughputs.items() if kind.lower() in k.lower()]
             all_throughputs_this_kind = sum([v for _, v in throughputs_this_kind], [])
             max_throughput = max(all_throughputs_this_kind)
@@ -276,7 +279,7 @@ def bench_3_dims_n_obs_unordered():
                 if preallocate
                 else "\nWithout Preallocated Output"
             )
-            plt.title(f"{kind} Interpolation on 20x20x20 Grid" + with_alloc_string)
+            plt.title(f"{kind}" + with_alloc_string)
         plt.show(block=False)
 
 
@@ -368,8 +371,11 @@ def bench_6_dims_n_obs_unordered():
 
         linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
         alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
-        for kind in ["Linear", "Cubic"]:
-            plt.figure(figsize=(12, 8))
+        _fig, axes = plt.subplots(1,2, figsize=(12,6))
+        plt.suptitle("Interpolation on 4x...x4 6D Grid")
+        for i, kind in enumerate(["Linear", "Cubic"]):
+            # plt.figure()
+            plt.sca(axes[i])
             throughputs_this_kind = [(k,v) for k, v in throughputs.items() if kind.lower() in k.lower()]
             all_throughputs_this_kind = sum([v for _, v in throughputs_this_kind], [])
             max_throughput = max(all_throughputs_this_kind)
@@ -392,7 +398,7 @@ def bench_6_dims_n_obs_unordered():
                 if preallocate
                 else "\nWithout Preallocated Output"
             )
-            plt.title(f"{kind} Interpolation on 4x...x4 6D Grid" + with_alloc_string)
+            plt.title(f"{kind}" + with_alloc_string)
         plt.show(block=False)
         
 
