@@ -509,7 +509,7 @@ def bench_throughput_vs_dims():
 
 if __name__ == "__main__":
     bench_throughput_vs_dims()
-    # bench_6_dims_1_obs()
-    # bench_6_dims_n_obs_unordered()
-    # bench_3_dims_n_obs_unordered()
+    bench_6_dims_1_obs()
+    bench_6_dims_n_obs_unordered()
+    bench_3_dims_n_obs_unordered()
     plt.show(block=True)
