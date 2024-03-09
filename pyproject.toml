@@ -27,11 +27,12 @@ test = [
     "coverage >= 7.3.2",
     "ruff >= 0.1.6",
     "pyright >= 1.1.337",
-    "mktestdocs >= 0.2.1"
+    "mktestdocs >= 0.2.1",
 ]
 bench = [
     "scipy >= 1.11.4",
-    "matplotlib >= 3.8"
+    "matplotlib >= 3.8",
+    "memory_profiler >= 0.61.0",
 ]
 doc = [
     "mkdocs >= 1.5.3",

@@ -34,17 +34,11 @@ For 1D interpolation, these methods will work, but special-purpose
 1D interpolation functions like `numpy.interp` will tend to perform
 better.
 
-### Linear interpolation in 3D and 6D
-<p>
-    <img style="width: 45%" src="./3d_no_prealloc.svg" alt="3D linear" />
-    <img style="width: 45%" src="./6d_no_prealloc.svg" alt="6D linear" />
-</p>
+### 3D Linear & Cubic
+<img src="./3d_no_prealloc.svg" alt="3D linear" />
 
-### Cubic interpolation in 3D and 6D
-<p>
-    <img style="width: 45%" src="./3d_no_prealloc_cubic.svg" alt="3D linear" />
-    <img style="width: 45%" src="./6d_no_prealloc_cubic.svg" alt="6D linear" />
-</p>
+### 6D Linear & Cubic
+<img src="./6d_no_prealloc.svg" alt="6D linear" />
 
 ----
 ## Memory Usage

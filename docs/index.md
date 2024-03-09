@@ -1,17 +1,29 @@
 # Quickstart
 
-Repo: https://github.com/jlogan03/interpnpy
-
-Rust docs: https://docs.rs/interpn/latest/interpn/
+[Repo (github)](https://github.com/jlogan03/interpnpy) | 
+[Rust Docs (docs.rs)](https://docs.rs/interpn/latest/interpn/)
 
 This library provides serializable N-dimensional interpolators
 backed by compute-heavy code written in Rust.
 
 These methods perform zero allocation when evaluated (except, optionally, for the output). 
 Because of this, they have minimal per-call overhead, and are particularly
-effective when examining small numbers of observation points.
+effective when examining small numbers of observation points. See the [performance](/perf) page for detailed benchmarks.
 
-# Example: Multilinear Interpolation on a Regular Grid
+## Install
+
+```bash
+pip install interpn
+```
+
+## Features
+| N-dimensional Grid Type →<br>↓ Interpolant Method | Regular | Rectilinear |
+|-------------------|---------|-------------|
+| Linear            |   ✅    |     ✅      |
+| Cubic             |   ✅    |     💡      |
+
+
+## Example: Multilinear Interpolation on a Regular Grid
 ```python
 import interpn
 import numpy as np

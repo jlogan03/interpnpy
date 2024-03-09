@@ -2,9 +2,11 @@
 
 Python bindings to the `interpn` Rust library for N-dimensional interpolation and extrapolation. 
 
-Features
-* Linear interpolation/extrapolation in N dimensions on regular and rectilinear grids
-* Cubic interpolation/extrapolation in N dimensions on regular grids
+## Features
+| N-dimensional Grid Type →<br>↓ Interpolant Method | Regular | Rectilinear |
+|-------------------|---------|-------------|
+| Linear            |   ✅    |     ✅      |
+| Cubic             |   ✅    |     💡      |
 
 The methods provided here, while more limited in scope than scipy's, are
 * significantly faster (1-2 orders of magnitude under most conditions)
