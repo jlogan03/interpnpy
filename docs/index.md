@@ -19,10 +19,11 @@ pip install interpn
 ```
 
 ## Features
-| N-dimensional Grid Type →<br>↓ Interpolant Method | Regular | Rectilinear |
-|-------------------|---------|-------------|
-| Linear            |   ✅    |     ✅      |
-| Cubic             |   ✅    |     💡      |
+| Feature →<br>↓ Interpolant Method | Regular<br>Grid | Rectilinear<br>Grid | Json<br>Serialization |
+|-----------------------------------|-----------------|---------------------|-----------------------|
+| Linear                            |   ✅            |     ✅              | ✅                    |
+| Cubic                             |   ✅            |     💡              | ✅                    |
+
 
 
 ## Example: Multilinear Interpolation on a Regular Grid
