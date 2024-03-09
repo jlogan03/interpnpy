@@ -35,20 +35,20 @@ For 1D interpolation, these methods will work, but special-purpose
 better.
 
 ### 3D Throughput vs. Input Size
-<img src="./3d_no_prealloc.svg" alt="3D linear throughput" />
+![3D linear throughput](./3d_no_prealloc.svg)
 
 ### 6D Throughput vs. Input Sizec
-<img src="./6d_no_prealloc.svg" alt="6D linear throughput" />
+![6D linear throughput](./6d_no_prealloc.svg)
 
 ----
 ### Throughput vs. Dimensionality
 The same performance trends persist with grids of dimension 1-6, with an unusual regime change apparent in the scipy cubic trace between dimensions 1 and 2. Scipy's RectBivariateSpline, while only usable for 2D data, is included to compare to a more similar algorithm for evaluation.
 
 #### 1000 Observation Points
-<img src="./nd_throughput_1000obs.svg" alt="ND throughput 1000 observation points" />
+![ND throughput 1000 obs](./nd_throughput_1000obs.svg)
 
 #### 1 Observation Point
-<img src="./nd_throughput_1obs.svg" alt="ND throughput 1 observation point" />
+![ND throughput 1 obs](./nd_throughput_1obs.svg)
 
 ----
 ## Memory Usage
@@ -61,4 +61,4 @@ The linear methods all use roughly the same amount of RAM during evaluation. In 
 
 The memory profiler picks up a large amount of RAM that is not actually part of the function evaluation, but belongs to the outer process. As a result, all methods show a bogus memory usage floor of about 97MB.
 
-<img src="./nd_memory.svg" alt="ND memory usage" />
+![ND memory usage](./nd_memory.svg)
