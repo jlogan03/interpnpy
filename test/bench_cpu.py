@@ -2,7 +2,7 @@ import gc
 
 from timeit import timeit
 import numpy as np
-from scipy.interpolate import RegularGridInterpolator
+from scipy.interpolate import RegularGridInterpolator, RectBivariateSpline
 import matplotlib.pyplot as plt
 
 from interpn import MultilinearRectilinear, MultilinearRegular, MulticubicRegular
@@ -406,6 +406,7 @@ def bench_throughput_vs_dims():
     throughputs = {
         "Scipy RegularGridInterpolator Linear": [],
         "Scipy RegularGridInterpolator Cubic": [],
+        "Scipy RectBivariateSpline Cubic": [],
         "InterpN MultilinearRegular": [],
         "InterpN MultilinearRectilinear": [],
         "InterpN MulticubicRegular": [],
@@ -418,6 +419,7 @@ def bench_throughput_vs_dims():
         grids = [np.linspace(-1.0, 1.0, ngrid) for _ in range(ndims)]
         xgrid = np.meshgrid(*grids, indexing="ij")
         zgrid = np.random.uniform(-1.0, 1.0, xgrid[0].size)
+        z = zgrid.reshape(xgrid[0].shape)
 
         dims = [x.size for x in grids]
         starts = np.array([x[0] for x in grids])
@@ -426,10 +428,10 @@ def bench_throughput_vs_dims():
         # Initialize all interpolator methods
         # Scipy RegularGridInterpolator is actually a more general rectilinear method
         rectilinear_sp = RegularGridInterpolator(
-            grids, zgrid.reshape(xgrid[0].shape), bounds_error=None
+            grids, z.copy(), bounds_error=None
         )
         cubic_rectilinear_sp = RegularGridInterpolator(
-            grids, zgrid.reshape(xgrid[0].shape), bounds_error=None, method="cubic"
+            grids, z.copy(), bounds_error=None, method="cubic"
         )
         rectilinear_interpn = MultilinearRectilinear.new(grids, zgrid)
         regular_interpn = MultilinearRegular.new(dims, starts, steps, zgrid)
@@ -459,12 +461,20 @@ def bench_throughput_vs_dims():
             "InterpN MulticubicRegular":  lambda p: cubic_regular_interpn.eval(p),
         }
 
+        if ndims == 2:
+            cubic_rbs_sp = RectBivariateSpline(grids[0], grids[1], z.copy(), kx=3, ky=3, s=0)
+            interps["Scipy RectBivariateSpline Cubic"] = lambda p: cubic_rbs_sp(*p, grid=False)
+        else:
+            if "Scipy RectBivariateSpline Cubic" in interps.keys():
+                interps.pop("Scipy RectBivariateSpline Cubic")
+
         # Interpolation in random order
         points_interpn = [np.random.permutation(x.flatten()) for x in obsgrid]
         points_sp = np.ascontiguousarray(np.array(points_interpn).T)
         points = {
             "Scipy RegularGridInterpolator Linear": points_sp,
             "Scipy RegularGridInterpolator Cubic": points_sp,
+            "Scipy RectBivariateSpline Cubic": points_interpn,
             "InterpN MultilinearRegular": points_interpn,
             "InterpN MultilinearRectilinear": points_interpn,
             "InterpN MulticubicRegular": points_interpn,
@@ -492,15 +502,28 @@ def bench_throughput_vs_dims():
         max_throughput = max(all_throughputs_this_kind)
         for i, (k, v) in enumerate(throughputs_this_kind):
             normalized_throughput = np.array(v) / max_throughput
-            plt.semilogy(
-                ndims_to_test,
-                normalized_throughput,
-                color="k",
-                linewidth=2,
-                linestyle=linestyles[i],
-                label=k,
-                alpha=alpha[i],
-            )
+            if k != "Scipy RectBivariateSpline Cubic":
+                plt.semilogy(
+                    ndims_to_test,
+                    normalized_throughput,
+                    color="k",
+                    linewidth=2,
+                    linestyle=linestyles[i],
+                    label=k,
+                    alpha=alpha[i],
+                )
+            else:
+                plt.semilogy(
+                    [2],
+                    normalized_throughput,
+                    marker="o",
+                    markersize=10,
+                    color="k",
+                    linewidth=2,
+                    linestyle=linestyles[i],
+                    label=k,
+                    alpha=alpha[i],
+                )
         plt.legend()
         plt.xlabel("Number of Dimensions")
         plt.ylabel("Normalized Throughput")
@@ -509,7 +532,7 @@ def bench_throughput_vs_dims():
 
 if __name__ == "__main__":
     bench_throughput_vs_dims()
-    bench_6_dims_1_obs()
-    bench_6_dims_n_obs_unordered()
-    bench_3_dims_n_obs_unordered()
+    # bench_6_dims_1_obs()
+    # bench_6_dims_n_obs_unordered()
+    # bench_3_dims_n_obs_unordered()
     plt.show(block=True)
