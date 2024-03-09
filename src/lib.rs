@@ -2,8 +2,8 @@ use numpy::PyArray1;
 use pyo3::exceptions;
 use pyo3::prelude::*;
 
-use interpn::multilinear;
 use interpn::multicubic;
+use interpn::multilinear;
 
 /// Maximum number of dimensions for linear interpn convenience methods
 const MAXDIMS: usize = 8;
@@ -200,7 +200,15 @@ macro_rules! interpn_cubic_regular_impl {
             let out = outrw.as_slice_mut()?;
 
             // Evaluate
-            match multicubic::regular::interpn(&dims, starts, steps, vals, linearize_extrapolation, obs, out) {
+            match multicubic::regular::interpn(
+                &dims,
+                starts,
+                steps,
+                vals,
+                linearize_extrapolation,
+                obs,
+                out,
+            ) {
                 Ok(()) => Ok(()),
                 Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
             }
