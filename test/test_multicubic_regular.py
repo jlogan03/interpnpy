@@ -29,6 +29,7 @@ def test_multicubic_regular():
                 starts,
                 steps,
                 zgrid.flatten(),
+                False,
                 obs,
                 out,
             )
@@ -38,6 +39,7 @@ def test_multicubic_regular():
                 starts,
                 steps,
                 zgrid.flatten(),
+                False,
                 obs,
                 out,
             )
