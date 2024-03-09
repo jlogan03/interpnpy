@@ -15,7 +15,7 @@ Both methods can full capture a quadratic function in arbitrary dimensions, incl
 ![2D cubic](./2d_cubic_quality_of_fit.svg)
 
 ----
-## Speed
+## Throughput
 
 More commentary about low-level perf scalings for each method
 can be found in the [documentation for the Rust library](https://docs.rs/interpn/latest/interpn/).
@@ -35,12 +35,20 @@ For 1D interpolation, these methods will work, but special-purpose
 better.
 
 ### 3D Linear & Cubic
-<img src="./3d_no_prealloc.svg" alt="3D linear" />
+<img src="./3d_no_prealloc.svg" alt="3D linear throughput" />
 
 ### 6D Linear & Cubic
-<img src="./6d_no_prealloc.svg" alt="6D linear" />
+<img src="./6d_no_prealloc.svg" alt="6D linear throughput" />
 
 ----
 ## Memory Usage
+
+Memory profiling in Python is an odd activity. `memory_profiler` is used here, and may miss some memory usage in extension libraries. Also for this reason, the memory profiler is unable to capture the memory used by scipy to actualize the spline knots during initialization, and a comparison of profiled memory usage during initialization is unenlightening.
+
+Since InterpN's backend library does not have access to an allocator, it's unlikely that there is much hidden behind that interface during evaluation. However, it is possible that some memory used by scipy is not identified by the profiler.
+
+The linear methods all use roughly the same amount of RAM during evaluation. In the case of InterpN, as designed, the instantaneous memory usage of all the methods, both linear and cubic, is the same during evaluation.
+
+<img src="./nd_memory.svg" alt="ND memory usage" />
 
 

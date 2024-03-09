@@ -224,7 +224,9 @@ def bench_3_dims_n_obs_unordered():
                 "InterpN MultilinearRectilinear": lambda p: rectilinear_interpn.eval(
                     p, out
                 ),
-                "InterpN MulticubicRegular":  lambda p: cubic_regular_interpn.eval(p, out),
+                "InterpN MulticubicRegular": lambda p: cubic_regular_interpn.eval(
+                    p, out
+                ),
             }
 
             # Interpolation in random order
@@ -252,18 +254,20 @@ def bench_3_dims_n_obs_unordered():
         linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
         alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
 
-        _fig, axes = plt.subplots(1,2, figsize=(12,6))
+        _fig, axes = plt.subplots(1, 2, figsize=(12, 6))
         plt.suptitle("Interpolation on 20x20x20 Grid")
         for i, kind in enumerate(["Linear", "Cubic"]):
             # plt.figure()
             plt.sca(axes[i])
-            throughputs_this_kind = [(k,v) for k, v in throughputs.items() if kind.lower() in k.lower()]
+            throughputs_this_kind = [
+                (k, v) for k, v in throughputs.items() if kind.lower() in k.lower()
+            ]
             all_throughputs_this_kind = sum([v for _, v in throughputs_this_kind], [])
             max_throughput = max(all_throughputs_this_kind)
             for i, (k, v) in enumerate(throughputs_this_kind):
                 normalized_throughput = np.array(v) / max_throughput
                 plt.loglog(
-                    ns[:normalized_throughput.size],
+                    ns[: normalized_throughput.size],
                     normalized_throughput,
                     color="k",
                     linewidth=2,
@@ -274,11 +278,7 @@ def bench_3_dims_n_obs_unordered():
             plt.legend()
             plt.xlabel("Number of Observation Points")
             plt.ylabel("Normalized Throughput")
-            with_alloc_string = (
-                "\nWith Preallocated Output"
-                if preallocate
-                else "\nWithout Preallocated Output"
-            )
+            with_alloc_string = "\nWith Preallocated Output" if preallocate else ""
             plt.title(f"{kind}" + with_alloc_string)
         plt.show(block=False)
 
@@ -346,7 +346,9 @@ def bench_6_dims_n_obs_unordered():
                 "InterpN MultilinearRectilinear": lambda p: rectilinear_interpn.eval(
                     p, out
                 ),
-                "InterpN MulticubicRegular":  lambda p: cubic_regular_interpn.eval(p, out),
+                "InterpN MulticubicRegular": lambda p: cubic_regular_interpn.eval(
+                    p, out
+                ),
             }
 
             # Interpolation in random order
@@ -371,18 +373,20 @@ def bench_6_dims_n_obs_unordered():
 
         linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
         alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
-        _fig, axes = plt.subplots(1,2, figsize=(12,6))
+        _fig, axes = plt.subplots(1, 2, figsize=(12, 6))
         plt.suptitle("Interpolation on 4x...x4 6D Grid")
         for i, kind in enumerate(["Linear", "Cubic"]):
             # plt.figure()
             plt.sca(axes[i])
-            throughputs_this_kind = [(k,v) for k, v in throughputs.items() if kind.lower() in k.lower()]
+            throughputs_this_kind = [
+                (k, v) for k, v in throughputs.items() if kind.lower() in k.lower()
+            ]
             all_throughputs_this_kind = sum([v for _, v in throughputs_this_kind], [])
             max_throughput = max(all_throughputs_this_kind)
             for i, (k, v) in enumerate(throughputs_this_kind):
                 normalized_throughput = np.array(v) / max_throughput
                 plt.loglog(
-                    ns[:normalized_throughput.size],
+                    ns[: normalized_throughput.size],
                     normalized_throughput,
                     color="k",
                     linewidth=2,
@@ -393,14 +397,9 @@ def bench_6_dims_n_obs_unordered():
             plt.legend()
             plt.xlabel("Number of Observation Points")
             plt.ylabel("Normalized Throughput")
-            with_alloc_string = (
-                "\nWith Preallocated Output"
-                if preallocate
-                else "\nWithout Preallocated Output"
-            )
+            with_alloc_string = "\nWith Preallocated Output" if preallocate else ""
             plt.title(f"{kind}" + with_alloc_string)
         plt.show(block=False)
-        
 
 
 if __name__ == "__main__":
@@ -408,4 +407,3 @@ if __name__ == "__main__":
     bench_6_dims_n_obs_unordered()
     bench_3_dims_n_obs_unordered()
     plt.show(block=True)
-    
