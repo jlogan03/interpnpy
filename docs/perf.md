@@ -34,11 +34,17 @@ For 1D interpolation, these methods will work, but special-purpose
 1D interpolation functions like `numpy.interp` will tend to perform
 better.
 
-### 3D Linear & Cubic
+### 3D Throughput vs. Input Size
 <img src="./3d_no_prealloc.svg" alt="3D linear throughput" />
 
-### 6D Linear & Cubic
+### 6D Throughput vs. Input Sizec
 <img src="./6d_no_prealloc.svg" alt="6D linear throughput" />
+
+----
+### Throughput vs. Dimensionality
+The same performance trends persist with grids of dimension 1-6, with an unusual regime change apparent in the scipy cubic trace between dimensions 1 and 2.
+
+<img src="./nd_throughput.svg" alt="ND throughput" />
 
 ----
 ## Memory Usage
@@ -50,5 +56,3 @@ Since InterpN's backend library does not have access to an allocator, it's unlik
 The linear methods all use roughly the same amount of RAM during evaluation. In the case of InterpN, as designed, the instantaneous memory usage of all the methods, both linear and cubic, is the same during evaluation.
 
 <img src="./nd_memory.svg" alt="ND memory usage" />
-
-
