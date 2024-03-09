@@ -45,10 +45,10 @@ better.
 The same performance trends persist with grids of dimension 1-6, with an unusual regime change apparent in the scipy cubic trace between dimensions 1 and 2. Scipy's RectBivariateSpline, while only usable for 2D data, is included to compare to a more similar algorithm for evaluation.
 
 #### 1000 Observation Points
-<img src="./nd_throughput_1000obs.svg" alt="ND throughput" />
+<img src="./nd_throughput_1000obs.svg" alt="ND throughput 1000 observation points" />
 
 #### 1 Observation Point
-<img src="./nd_throughput_1obs.svg" alt="ND throughput" />
+<img src="./nd_throughput_1obs.svg" alt="ND throughput 1 observation point" />
 
 ----
 ## Memory Usage
