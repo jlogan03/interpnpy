@@ -21,13 +21,13 @@ More commentary about low-level perf scalings for each method
 can be found in the [documentation for the Rust library](https://docs.rs/interpn/latest/interpn/).
 
 By comparison to `scipy.interpolate.RegularGridInterpolator`,
-InterpN linear methods do exceptionally well for small numbers of observation points, and are roughly at parity for large numbers of observation points. InterpN cubic methods are significantly faster across all tested conditions.
+InterpN linear methods do exceptionally well for small numbers of observation points, and are roughly at parity for large numbers of observation points. InterpN cubic methods are significantly faster across all tested conditions, although `scipy.interpolate.RectBivariateSpline` is notably slightly faster for the special case of 2 dimensional data.
 
-They are also exceptionally good for working with large grids,
+The InterpN methods are also exceptionally good for working with large grids,
 as they do not allocate any significant amount of storage during
 setup or evaluation unless the inputs must be reallocated to match data types or be made contiguous.
 
-These methods are also somewhat slower in extrapolation, but rarely
+InterpN's linear methods are also somewhat slower in extrapolation, but rarely
 far from parity.
 
 For 1D interpolation, these methods will work, but special-purpose
@@ -42,7 +42,7 @@ better.
 
 ----
 ### Throughput vs. Dimensionality
-The same performance trends persist with grids of dimension 1-6, with an unusual regime change apparent in the scipy cubic trace between dimensions 1 and 2.
+The same performance trends persist with grids of dimension 1-6, with an unusual regime change apparent in the scipy cubic trace between dimensions 1 and 2. Scipy's RectBivariateSpline, while only usable for 2D data, is included to compare to a more similar algorithm for evaluation.
 
 <img src="./nd_throughput.svg" alt="ND throughput" />
 
