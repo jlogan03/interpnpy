@@ -1,6 +1,8 @@
 # Quickstart
 
-[Repo (github)](https://github.com/jlogan03/interpnpy) | 
+[Docs](https://interpnpy.readthedocs.io/en/latest/) |
+[Repo](https://github.com/jlogan03/interpnpy) |
+[Rust Library (github)](https://github.com/jlogan03/interpn) | 
 [Rust Docs (docs.rs)](https://docs.rs/interpn/latest/interpn/)
 
 This library provides serializable N-dimensional interpolators

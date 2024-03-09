@@ -4,7 +4,8 @@ Python bindings to the `interpn` Rust library for N-dimensional interpolation an
 
 [Docs](https://interpnpy.readthedocs.io/en/latest/) |
 [Repo](https://github.com/jlogan03/interpnpy) |
-[Rust Library](https://github.com/jlogan03/interpn)
+[Rust Library (github)](https://github.com/jlogan03/interpn) | 
+[Rust Docs (docs.rs)](https://docs.rs/interpn/latest/interpn/)
 
 ## Features
 | Feature →<br>↓ Interpolant Method | Regular<br>Grid | Rectilinear<br>Grid | Json<br>Serialization |
