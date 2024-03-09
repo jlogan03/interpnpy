@@ -21,14 +21,14 @@ def test_multilinear_rectilinear():
 
         # Do interpolation
         if dtype == np.float32:
-            interpn.raw.interpn_rectilinear_f32(
+            interpn.raw.interpn_linear_rectilinear_f32(
                 grids,
                 zgrid.flatten(),
                 obs,
                 out,
             )
         else:
-            interpn.raw.interpn_rectilinear_f64(
+            interpn.raw.interpn_linear_rectilinear_f64(
                 grids,
                 zgrid.flatten(),
                 obs,

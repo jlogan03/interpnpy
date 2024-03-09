@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "interpn"
-version = "0.1.5"
+version = "0.2.0"
 repository = "https://github.com/jlogan03/interpnpy"
 documentation = "https://interpn.readthedocs.io/"
 description = "N-dimensional interpolation/extrapolation methods"
@@ -27,11 +27,14 @@ test = [
     "coverage >= 7.3.2",
     "ruff >= 0.1.6",
     "pyright >= 1.1.337",
-    "mktestdocs >= 0.2.1"
+    "mktestdocs >= 0.2.1",
+    "scipy >= 1.11.4",
+    "matplotlib >= 3.8",
 ]
 bench = [
     "scipy >= 1.11.4",
-    "matplotlib >= 3.8"
+    "matplotlib >= 3.8",
+    "memory_profiler >= 0.61.0",
 ]
 doc = [
     "mkdocs >= 1.5.3",

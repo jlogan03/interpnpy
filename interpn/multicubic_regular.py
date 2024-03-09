@@ -15,29 +15,45 @@ from pydantic import (
 from .serialization import Array, ArrayF32, ArrayF64
 
 from ._interpn import (
-    interpn_linear_rectilinear_f64,
-    interpn_linear_rectilinear_f32,
-    check_bounds_rectilinear_f64,
-    check_bounds_rectilinear_f32,
+    interpn_cubic_regular_f64,
+    interpn_cubic_regular_f32,
+    check_bounds_regular_f64,
+    check_bounds_regular_f32,
 )
 
 
-class MultilinearRectilinear(BaseModel):
+class MulticubicRegular(BaseModel):
     """
-    Multilinear interpolation on a rectilinear grid in up to 8 dimensions.
+    Multicubic interpolation on a regular grid in up to 8 dimensions.
+
+    This method uses a symmetrized Hermite spline interpolant,
+    which provides a continuous value and first derivative.
+    Unlike a B-spline, the second derivative is not continuous;
+    however, also unlike a B-spline, the first derivatives are
+    maintained to more exactly match the data as estimated by
+    a central difference.
+
+    Under extrapolations, dimensions on which extrapolation is occurring
+    (but not other dimensions) are extrapolated linearly from the last
+    two grid points on that dimension.
 
     All array inputs must be of the same type, either np.float32 or np.float64
-    and must be 1D and contiguous.
+    and must be 1D and contiguous and have size at least 4.
     """
 
     # Immutable after initialization checks
     model_config = ConfigDict(frozen=True, extra="forbid", arbitrary_types_allowed=True)
 
-    grids: list[Array]
+    dims: list[int]
+    starts: Array
+    steps: Array
     vals: Array
+    linearize_extrapolation: bool
 
     @classmethod
-    def new(cls, grids: list[NDArray], vals: NDArray) -> MultilinearRectilinear:
+    def new(
+        cls, dims: list[int], starts: NDArray, steps: NDArray, vals: NDArray, linearize_extrapolation: bool = False
+    ) -> MulticubicRegular:
         """
         Initialize interpolator and check types and dimensions, casting other arrays
         to the same type as `vals` if they do not match, and flattening and/or
@@ -47,19 +63,25 @@ class MultilinearRectilinear(BaseModel):
         mixing pydantic and numpy.
 
         Args:
-            grids: Arrays for grid coordinate values.
-                   All grids must be monotonically increasing.
+            dims: Number of elements on each dimension of the grid
+            starts: Starting point of each dimension of the grid
+            steps: Step size on each dimension of the grid
             vals: Values at grid points in C-style ordering,
                   as obtained from np.meshgrid(..., indexing="ij")
+            linearize_extrapolation: Whether to fall back to a linear
+                interpolant outside the grid
 
         Returns:
-            A new MultilinearRectilinear interpolator instance.
+            A new MulticubicRegular interpolator instance.
         """
         dtype = vals.dtype
         arrtype = ArrayF64 if dtype == np.float64 else ArrayF32
-        interpolator = MultilinearRectilinear(
-            grids=[arrtype(data=x) for x in grids],
+        interpolator = MulticubicRegular(
+            dims=dims,
+            starts=arrtype(data=starts.flatten()),
+            steps=arrtype(data=steps.flatten()),
             vals=arrtype(data=vals.flatten()),
+            linearize_extrapolation=linearize_extrapolation,
         )
 
         return interpolator
@@ -68,32 +90,29 @@ class MultilinearRectilinear(BaseModel):
     def _validate_model(self):
         """Check that all inputs are contiguous and of the same data type,
         and that the grid dimensions and values make sense."""
-        dims = self.dims()
         ndims = self.ndims()
         assert (
             ndims <= 8 and ndims >= 1
         ), "Number of dimensions must be at least 1 and no more than 8"
+        assert self.starts.data.size == ndims, "Grid dimension mismatch"
+        assert self.steps.data.size == ndims, "Grid dimension mismatch"
         assert self.vals.data.size == reduce(
-            lambda acc, x: acc * x, dims
+            lambda acc, x: acc * x, self.dims
         ), "Size of value array does not match grid dims"
         assert all(
-            [np.all(np.diff(x.data) > 0.0) for x in self.grids]
-        ), "All grids must be monotonically increasing"
+            [x > 0.0 for x in self.steps.data]
+        ), "All grid steps must be positive and nonzero"
         assert all(
-            [x.data.dtype == self.vals.data.dtype for x in self.grids]
+            [x.data.dtype == self.vals.data.dtype for x in [self.steps, self.vals]]
         ), "All grid inputs must be of the same data type (np.float32 or np.float64)"
-        assert (
-            all([x.data.data.contiguous for x in self.grids])
-            and self.vals.data.data.contiguous
+        assert all(
+            [x.data.data.contiguous for x in [self.starts, self.steps, self.vals]]
         ), "Grid data must be contiguous"
 
         return self
 
     def ndims(self) -> int:
-        return len(self.grids)
-
-    def dims(self) -> list[int]:
-        return [x.data.size for x in self.grids]
+        return len(self.dims)
 
     def eval(self, obs: list[NDArray], out: Optional[NDArray] = None) -> NDArray:
         """Evaluate the interpolator at a set of observation points,
@@ -113,8 +132,7 @@ class MultilinearRectilinear(BaseModel):
         Returns:
             Array of evaluated values in the same shape and data type as obs[0]
         """
-        # Allocate output if it was not provided,
-        # then check data type and contiguousness
+        # Allocate output if it was not provided
         out_inner = out if out is not None else np.zeros_like(obs[0])
         self.eval_unchecked(obs, out_inner)
 
@@ -145,16 +163,22 @@ class MultilinearRectilinear(BaseModel):
         out_inner = out if out is not None else np.zeros_like(obs[0])
 
         if dtype == np.float64:
-            interpn_linear_rectilinear_f64(
-                [x.data for x in self.grids],
+            interpn_cubic_regular_f64(
+                self.dims,
+                self.starts.data,
+                self.steps.data,
                 self.vals.data,
+                self.linearize_extrapolation,
                 obs,
                 out_inner,
             )
         elif dtype == np.float32:
-            interpn_linear_rectilinear_f32(
-                [x.data for x in self.grids],
+            interpn_cubic_regular_f32(
+                self.dims,
+                self.starts.data,
+                self.steps.data,
                 self.vals.data,
+                self.linearize_extrapolation,
                 obs,
                 out_inner,
             )
@@ -185,15 +209,19 @@ class MultilinearRectilinear(BaseModel):
 
         dtype = self.vals.data.dtype
         if dtype == np.float64:
-            check_bounds_rectilinear_f64(
-                [x.data for x in self.grids],
+            check_bounds_regular_f64(
+                self.dims,
+                self.starts.data,
+                self.steps.data,
                 [x.flatten() for x in obs],
                 atol,
                 out,
             )
         elif dtype == np.float32:
-            check_bounds_rectilinear_f32(
-                [x.data for x in self.grids],
+            check_bounds_regular_f32(
+                self.dims,
+                self.starts.data,
+                self.steps.data,
                 [x.flatten() for x in obs],
                 atol,
                 out,

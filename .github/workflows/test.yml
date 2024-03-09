@@ -4,7 +4,7 @@ on:
     branches: [ "*" ]
   workflow_dispatch:
   workflow_call:
-# on: [workflow_call]  # allow this workflow to be called from other workflows
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -35,4 +35,6 @@ jobs:
     - name: Static typing - python
       run: source ../env/bin/activate; pyright ./interpn
     - name: Test - python
-      run: source ../env/bin/activate; pytest .
+      run: |
+        source ../env/bin/activate; pytest .
+        python ./examples/cubic_comparison.py test
