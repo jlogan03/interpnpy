@@ -3,7 +3,7 @@ import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 import matplotlib.pyplot as plt
 
-from interpn import MulticubicRegular
+from interpn import MulticubicRegular, MulticubicRectilinear
 
 def _step(x):
     y = np.ones_like(x)
@@ -26,6 +26,7 @@ if __name__ == "__main__":
         starts = np.asarray([-2.0])
         steps = np.asarray([data_res])
         y_interpn = MulticubicRegular.new(dims, starts, steps, ydata).eval([xinterp])
+        y_interpn = MulticubicRectilinear.new([xdata], ydata).eval([xinterp])
 
         y_sp = RegularGridInterpolator(
             [xdata], ydata, bounds_error=None, fill_value=None, method="cubic"
