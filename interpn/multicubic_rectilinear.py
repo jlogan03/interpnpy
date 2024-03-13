@@ -49,7 +49,7 @@ class MulticubicRectilinear(BaseModel):
     linearize_extrapolation: bool
 
     @classmethod
-    def new(cls, grids: list[NDArray], vals: NDArray, linearize_extrapolation: bool = False) -> MultilinearRectilinear:
+    def new(cls, grids: list[NDArray], vals: NDArray, linearize_extrapolation: bool = False) -> MulticubicRectilinear:
         """
         Initialize interpolator and check types and dimensions, casting other arrays
         to the same type as `vals` if they do not match, and flattening and/or
