@@ -8,7 +8,7 @@ import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 import matplotlib.pyplot as plt
 
-from interpn import MultilinearRectilinear, MultilinearRegular, MulticubicRegular
+from interpn import MultilinearRectilinear, MultilinearRegular, MulticubicRegular, MulticubicRectilinear
 
 def bench_eval_mem_vs_dims():
     usages = {
@@ -17,6 +17,7 @@ def bench_eval_mem_vs_dims():
         "InterpN MultilinearRegular": [],
         "InterpN MultilinearRectilinear": [],
         "InterpN MulticubicRegular": [],
+        "InterpN MulticubicRectilinear": [],
     }
     ndims_to_test = [x for x in range(1, 9)]
     for ndims in ndims_to_test:
@@ -42,6 +43,7 @@ def bench_eval_mem_vs_dims():
         rectilinear_interpn = MultilinearRectilinear.new(grids, zgrid)
         regular_interpn = MultilinearRegular.new(dims, starts, steps, zgrid)
         cubic_regular_interpn = MulticubicRegular.new(dims, starts, steps, zgrid)
+        cubic_rectilinear_interpn = MulticubicRectilinear.new(grids, zgrid)
 
         m = max(int(float(nobs) ** (1.0 / ndims) + 2), 2)
 
@@ -65,6 +67,7 @@ def bench_eval_mem_vs_dims():
                 p
             ),
             "InterpN MulticubicRegular":  lambda p: cubic_regular_interpn.eval(p),
+            "InterpN MulticubicRectilinear":  lambda p: cubic_rectilinear_interpn.eval(p),
         }
 
         # Interpolation in random order
@@ -76,6 +79,7 @@ def bench_eval_mem_vs_dims():
             "InterpN MultilinearRegular": points_interpn,
             "InterpN MultilinearRectilinear": points_interpn,
             "InterpN MulticubicRegular": points_interpn,
+            "InterpN MulticubicRectilinear": points_interpn,
         }
 
         for name, func in interps.items():
