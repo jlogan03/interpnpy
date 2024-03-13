@@ -1,4 +1,5 @@
 import gc
+from pathlib import Path
 
 from timeit import timeit
 import numpy as np
@@ -310,6 +311,8 @@ def bench_3_dims_n_obs_unordered():
             plt.title(f"{kind}" + with_alloc_string)
 
         plt.tight_layout()
+        with_alloc_string = "\n_prealloc" if preallocate else ""
+        plt.savefig(Path(__file__).parent / f"docs/3d_throughput_vs_nobs{with_alloc_string}.svg")
         plt.show(block=False)
 
 
@@ -444,8 +447,10 @@ def bench_6_dims_n_obs_unordered():
             plt.ylabel("Normalized Throughput")
             with_alloc_string = "\nWith Preallocated Output" if preallocate else ""
             plt.title(f"{kind}" + with_alloc_string)
-        
+
         plt.tight_layout()
+        with_alloc_string = "\n_prealloc" if preallocate else ""
+        plt.savefig(Path(__file__).parent / f"docs/6d_throughput_vs_nobs{with_alloc_string}.svg")
         plt.show(block=False)
 
 
@@ -454,11 +459,11 @@ def bench_throughput_vs_dims():
         throughputs = {
             "Scipy RegularGridInterpolator Linear": [],
             "Scipy RegularGridInterpolator Cubic": [],
-            "Scipy RectBivariateSpline Cubic": [],
             "InterpN MultilinearRegular": [],
             "InterpN MultilinearRectilinear": [],
             "InterpN MulticubicRegular": [],
             "InterpN MulticubicRectilinear": [],
+            "Scipy RectBivariateSpline Cubic": [],  # Move to end to order plots
         }
         ndims_to_test = [x for x in range(1, 9)]
         for ndims in ndims_to_test:
@@ -595,8 +600,10 @@ def bench_throughput_vs_dims():
             plt.xlabel("Number of Dimensions")
             plt.ylabel("Normalized Throughput")
             plt.title(kind)
-            plt.tight_layout()
-            plt.show(block=False)
+
+        plt.tight_layout()
+        plt.savefig(Path(__file__).parent / f"docs/throughput_vs_dims_{nobs}_obs.svg")
+        plt.show(block=False)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,6 @@
 import sys
+from pathlib import Path
+
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 import matplotlib.pyplot as plt
@@ -16,7 +18,7 @@ if __name__ == "__main__":
 
     for kind in ["Regular", "Rectilinear"]:
         # 1D comparison
-        _fig, axes = plt.subplots(2, 3, sharex=True, figsize=(14, 8))
+        _fig, axes = plt.subplots(2, 3, sharex=True, figsize=(12, 4.5))
         axes = axes.flatten()
         plt.suptitle(f"Comparison\nInterpN Multicubic{kind} vs. Scipy RegularGridInterpolator Cubic")
         for i, (fnname, fn, data_res) in enumerate([("Quadratic", lambda x: x**2, 0.5), ("Sine", lambda x: np.sin(x), 0.5), ("Step", lambda x: _step(x), 0.5)]):
@@ -56,6 +58,9 @@ if __name__ == "__main__":
 
             plt.title("Error, " + fnname)
             plt.legend()
+
+        plt.tight_layout()
+        plt.savefig(Path(__file__).parent / f"docs/1d_quality_of_fit_{kind}.svg")
 
         # 2D comparison
         xdata = np.linspace(-3.0, 3.0, 6, endpoint=True)
@@ -104,6 +109,9 @@ if __name__ == "__main__":
             plt.axis("off")
             plt.colorbar()
             plt.legend()
+    
+        plt.tight_layout()
+        plt.savefig(Path(__file__).parent / f"docs/2d_quality_of_fit_{kind}.svg")
 
     testing = (len(sys.argv) > 1) and (sys.argv[1] == "test")
     if not testing:

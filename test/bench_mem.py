@@ -1,6 +1,7 @@
 """Benchmarks examining memory usage"""
 import gc
 import time
+from pathlib import Path
 
 from memory_profiler import memory_usage
 
@@ -8,7 +9,13 @@ import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 import matplotlib.pyplot as plt
 
-from interpn import MultilinearRectilinear, MultilinearRegular, MulticubicRegular, MulticubicRectilinear
+from interpn import (
+    MultilinearRectilinear,
+    MultilinearRegular,
+    MulticubicRegular,
+    MulticubicRectilinear,
+)
+
 
 def bench_eval_mem_vs_dims():
     usages = {
@@ -63,11 +70,11 @@ def bench_eval_mem_vs_dims():
             "Scipy RegularGridInterpolator Linear": rectilinear_sp,
             "Scipy RegularGridInterpolator Cubic": cubic_rectilinear_sp,
             "InterpN MultilinearRegular": lambda p: regular_interpn.eval(p),
-            "InterpN MultilinearRectilinear": lambda p: rectilinear_interpn.eval(
+            "InterpN MultilinearRectilinear": lambda p: rectilinear_interpn.eval(p),
+            "InterpN MulticubicRegular": lambda p: cubic_regular_interpn.eval(p),
+            "InterpN MulticubicRectilinear": lambda p: cubic_rectilinear_interpn.eval(
                 p
             ),
-            "InterpN MulticubicRegular":  lambda p: cubic_regular_interpn.eval(p),
-            "InterpN MulticubicRectilinear":  lambda p: cubic_rectilinear_interpn.eval(p),
         }
 
         # Interpolation in random order
@@ -87,26 +94,28 @@ def bench_eval_mem_vs_dims():
             gc.collect()
             time.sleep(0.1)
             p = points[name]
-            mems = memory_usage((func, (p, ), {}), interval=1e-9, backend="psutil")
+            mems = memory_usage((func, (p,), {}), interval=1e-9, backend="psutil")
             usages[name].append(max(mems))
 
     kinds = {
-            "Scipy RegularGridInterpolator Linear": "Linear",
-            "Scipy RegularGridInterpolator Cubic": "Cubic",
-            "InterpN MultilinearRegular": "Linear",
-            "InterpN MultilinearRectilinear": "Linear",
-            "InterpN MulticubicRegular": "Cubic",
-            "InterpN MulticubicRectilinear": "Cubic",
-        }
+        "Scipy RegularGridInterpolator Linear": "Linear",
+        "Scipy RegularGridInterpolator Cubic": "Cubic",
+        "InterpN MultilinearRegular": "Linear",
+        "InterpN MultilinearRectilinear": "Linear",
+        "InterpN MulticubicRegular": "Cubic",
+        "InterpN MulticubicRectilinear": "Cubic",
+    }
 
     linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
     alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
 
-    _fig, axes = plt.subplots(1,2, figsize=(12,6), sharey=True)
-    plt.suptitle(f"Interpolation on 4x...x4 N-Dimensional Grid\n{nobs} Observation Points")
+    _fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), sharey=True)
+    plt.suptitle(
+        f"Interpolation on 4x...x4 N-Dimensional Grid\n{nobs} Observation Points"
+    )
     for i, kind in enumerate(["Linear", "Cubic"]):
         plt.sca(axes[i])
-        usages_this_kind = [(k,v) for k, v in usages.items() if kinds[k] == kind]
+        usages_this_kind = [(k, v) for k, v in usages.items() if kinds[k] == kind]
         for i, (k, v) in enumerate(usages_this_kind):
             # The memory profiler captures some things not actually involved
             # in the function evaluation, which gives both methods a floor of
@@ -124,7 +133,11 @@ def bench_eval_mem_vs_dims():
         plt.xlabel("Number of Dimensions")
         plt.ylabel("Peak Memory Usage [MB]")
         plt.title(kind)
-        plt.show(block=False)
+
+    plt.tight_layout()
+    plt.savefig(Path(__file__).parent / "docs/ram_vs_dims.svg")
+    plt.show(block=False)
+
 
 if __name__ == "__main__":
     bench_eval_mem_vs_dims()
