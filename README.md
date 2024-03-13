@@ -78,13 +78,13 @@ steps = np.array([x[1] - x[0], y[1] - y[0]])
 obs = [xgrid.flatten(), ygrid.flatten()]
 
 # Initialize
-interpolator = interpn.MultilinearRegular.new(dims, starts, steps, zgrid)
+interpolator = interpn.MultilinearRegular.new(dims, starts, steps, zgrid.flatten())
 
 # Interpolate
 out = interpolator.eval(obs)
 
 # Check result
-assert np.all(out == zgrid.flatten())
+assert np.allclose(out, zgrid.flatten(), rtol=1e-13)
 
 # Serialize and deserialize
 roundtrip_interpolator = interpn.MultilinearRegular.model_validate_json(

@@ -89,7 +89,7 @@ interpolator = interpn.MultilinearRegular.new(dims, starts, steps, zgrid)
 out = interpolator.eval(obs)
 
 # Check result
-assert np.all(out == zgrid.flatten())
+assert np.allclose(out, zgrid.flatten(), rtol=1e-13)
 
 # Serialize and deserialize
 roundtrip_interpolator = interpn.MultilinearRegular.model_validate_json(
