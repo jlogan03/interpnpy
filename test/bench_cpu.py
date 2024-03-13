@@ -14,7 +14,7 @@ from interpn import (
 
 
 def bench_6_dims_1_obs():
-    nbench = 100  # Bench iterations
+    nbench = 30  # Bench iterations
     preallocate = False  # Whether to preallocate output array for InterpN
     ndims = 6  # Number of grid dimensions
     ngrid = 4  # Size of grid on each dimension
@@ -173,7 +173,7 @@ def bench_6_dims_1_obs():
 
 
 def bench_3_dims_n_obs_unordered():
-    nbench = 100  # Bench iterations
+    nbench = 30  # Bench iterations
 
     for preallocate in [False, True]:
         ndims = 3  # Number of grid dimensions
@@ -282,7 +282,7 @@ def bench_3_dims_n_obs_unordered():
         linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
         alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
 
-        _fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+        _fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
         plt.suptitle("Interpolation on 20x20x20 Grid")
         for i, kind in enumerate(["Linear", "Cubic"]):
             # plt.figure()
@@ -418,7 +418,7 @@ def bench_6_dims_n_obs_unordered():
 
         linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
         alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
-        _fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+        _fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
         plt.suptitle("Interpolation on 4x...x4 6D Grid")
         for i, kind in enumerate(["Linear", "Cubic"]):
             # plt.figure()
@@ -584,10 +584,10 @@ def bench_throughput_vs_dims():
                         [2],
                         normalized_throughput,
                         marker="o",
-                        markersize=10,
+                        markersize=5,
                         color="k",
                         linewidth=2,
-                        linestyle=linestyles[i],
+                        linestyle=None,
                         label=k,
                         alpha=alpha[i],
                     )
