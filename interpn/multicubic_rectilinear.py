@@ -24,10 +24,21 @@ from ._interpn import (
 
 class MulticubicRectilinear(BaseModel):
     """
-    Multilinear interpolation on a rectilinear grid in up to 8 dimensions.
+    Multicubic interpolation on a rectilinear grid in up to 8 dimensions.
+
+    This method uses a symmetrized Hermite spline interpolant,
+    which provides a continuous value and first derivative.
+    Unlike a B-spline, the second derivative is not continuous;
+    however, also unlike a B-spline, the first derivatives are
+    maintained to more exactly match the data as estimated by
+    a central difference.
+
+    If `linearize_extrapolation` is set, dimensions on which extrapolation is occurring
+    (but not other dimensions) are extrapolated linearly from the last
+    two grid points on that dimension.
 
     All array inputs must be of the same type, either np.float32 or np.float64
-    and must be 1D and contiguous.
+    and must be 1D and contiguous and have size at least 4.
     """
 
     # Immutable after initialization checks
@@ -48,7 +59,7 @@ class MulticubicRectilinear(BaseModel):
         mixing pydantic and numpy.
 
         Args:
-            grids: Arrays for grid coordinate values.
+            grids: 1D arrays of grid coordinate values.
                    All grids must be monotonically increasing.
             vals: Values at grid points in C-style ordering,
                   as obtained from np.meshgrid(..., indexing="ij")

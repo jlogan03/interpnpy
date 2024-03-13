@@ -33,7 +33,7 @@ class MulticubicRegular(BaseModel):
     maintained to more exactly match the data as estimated by
     a central difference.
 
-    Under extrapolations, dimensions on which extrapolation is occurring
+    If `linearize_extrapolation` is set, dimensions on which extrapolation is occurring
     (but not other dimensions) are extrapolated linearly from the last
     two grid points on that dimension.
 
