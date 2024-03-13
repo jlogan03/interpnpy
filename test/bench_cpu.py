@@ -263,6 +263,15 @@ def bench_3_dims_n_obs_unordered():
                 throughput = nobs / t
                 throughputs[name].append(throughput)
 
+        kinds = {
+                "Scipy RegularGridInterpolator Linear": "Linear",
+                "Scipy RegularGridInterpolator Cubic": "Cubic",
+                "InterpN MultilinearRegular": "Linear",
+                "InterpN MultilinearRectilinear": "Linear",
+                "InterpN MulticubicRegular": "Cubic",
+                "InterpN MulticubicRectilinear": "Cubic",
+            }
+
         linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
         alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
 
@@ -272,7 +281,7 @@ def bench_3_dims_n_obs_unordered():
             # plt.figure()
             plt.sca(axes[i])
             throughputs_this_kind = [
-                (k, v) for k, v in throughputs.items() if kind.lower() in k.lower()
+                (k, v) for k, v in throughputs.items() if kinds[k] == kind
             ]
             all_throughputs_this_kind = sum([v for _, v in throughputs_this_kind], [])
             max_throughput = max(all_throughputs_this_kind)
@@ -389,6 +398,15 @@ def bench_6_dims_n_obs_unordered():
                 throughput = nobs / t
                 throughputs[name].append(throughput)
 
+        kinds = {
+                "Scipy RegularGridInterpolator Linear": "Linear",
+                "Scipy RegularGridInterpolator Cubic": "Cubic",
+                "InterpN MultilinearRegular": "Linear",
+                "InterpN MultilinearRectilinear": "Linear",
+                "InterpN MulticubicRegular": "Cubic",
+                "InterpN MulticubicRectilinear": "Cubic",
+            }
+
         linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
         alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
         _fig, axes = plt.subplots(1, 2, figsize=(12, 6))
@@ -397,7 +415,7 @@ def bench_6_dims_n_obs_unordered():
             # plt.figure()
             plt.sca(axes[i])
             throughputs_this_kind = [
-                (k, v) for k, v in throughputs.items() if kind.lower() in k.lower()
+                (k, v) for k, v in throughputs.items() if kinds[k] == kind
             ]
             all_throughputs_this_kind = sum([v for _, v in throughputs_this_kind], [])
             max_throughput = max(all_throughputs_this_kind)

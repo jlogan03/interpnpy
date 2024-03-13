@@ -90,6 +90,15 @@ def bench_eval_mem_vs_dims():
             mems = memory_usage((func, (p, ), {}), interval=1e-9, backend="psutil")
             usages[name].append(max(mems))
 
+    kinds = {
+            "Scipy RegularGridInterpolator Linear": "Linear",
+            "Scipy RegularGridInterpolator Cubic": "Cubic",
+            "InterpN MultilinearRegular": "Linear",
+            "InterpN MultilinearRectilinear": "Linear",
+            "InterpN MulticubicRegular": "Cubic",
+            "InterpN MulticubicRectilinear": "Cubic",
+        }
+
     linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
     alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
 
@@ -97,7 +106,7 @@ def bench_eval_mem_vs_dims():
     plt.suptitle(f"Interpolation on 4x...x4 N-Dimensional Grid\n{nobs} Observation Points")
     for i, kind in enumerate(["Linear", "Cubic"]):
         plt.sca(axes[i])
-        usages_this_kind = [(k,v) for k, v in usages.items() if kind.lower() in k.lower()]
+        usages_this_kind = [(k,v) for k, v in usages.items() if kinds[k] == kind]
         for i, (k, v) in enumerate(usages_this_kind):
             # The memory profiler captures some things not actually involved
             # in the function evaluation, which gives both methods a floor of
