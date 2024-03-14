@@ -219,7 +219,6 @@ macro_rules! interpn_cubic_regular_impl {
 interpn_cubic_regular_impl!(interpn_cubic_regular_f64, f64);
 interpn_cubic_regular_impl!(interpn_cubic_regular_f32, f32);
 
-
 macro_rules! interpn_cubic_rectilinear_impl {
     ($funcname:ident, $T:ty) => {
         #[pyfunction]
@@ -253,7 +252,6 @@ macro_rules! interpn_cubic_rectilinear_impl {
 
 interpn_cubic_rectilinear_impl!(interpn_cubic_rectilinear_f64, f64);
 interpn_cubic_rectilinear_impl!(interpn_cubic_rectilinear_f32, f32);
-
 
 /// Python bindings for select functions from `interpn`.
 #[pymodule]
