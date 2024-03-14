@@ -135,7 +135,7 @@ def bench_eval_mem_vs_dims():
         plt.title(kind)
 
     plt.tight_layout()
-    plt.savefig(Path(__file__).parent / "docs/ram_vs_dims.svg")
+    plt.savefig(Path(__file__).parent / "../docs/ram_vs_dims.svg")
     plt.show(block=False)
 
 

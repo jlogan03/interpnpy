@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     for kind in ["Regular", "Rectilinear"]:
         # 1D comparison
-        _fig, axes = plt.subplots(2, 3, sharex=True, figsize=(12, 4.5))
+        _fig, axes = plt.subplots(2, 3, sharex=True, figsize=(14, 6))
         axes = axes.flatten()
         plt.suptitle(f"Comparison\nInterpN Multicubic{kind} vs. Scipy RegularGridInterpolator Cubic")
         for i, (fnname, fn, data_res) in enumerate([("Quadratic", lambda x: x**2, 0.5), ("Sine", lambda x: np.sin(x), 0.5), ("Step", lambda x: _step(x), 0.5)]):
@@ -60,14 +60,15 @@ if __name__ == "__main__":
             plt.legend()
 
         plt.tight_layout()
-        plt.savefig(Path(__file__).parent / f"docs/1d_quality_of_fit_{kind}.svg")
+        plt.savefig(Path(__file__).parent / f"../docs/1d_quality_of_fit_{kind}.svg")
 
         # 2D comparison
-        xdata = np.linspace(-3.0, 3.0, 6, endpoint=True)
-        ydata = np.linspace(-3.0, 3.0, 6, endpoint=True)
+        xdata = np.linspace(-3.0, 3.0, 7, endpoint=True)
+        ydata = np.linspace(-3.0, 3.0, 7, endpoint=True)
         if kind == "Rectilinear":
-            xdata += rng.uniform(-0.45 * data_res, 0.45 * data_res, xdata.size)
-            ydata += rng.uniform(-0.45 * data_res, 0.45 * data_res, ydata.size)
+            # Add noise to grid, but leave the outside extent in place
+            xdata[1:-1] += rng.uniform(-0.45 * data_res, 0.45 * data_res, xdata.size - 2)
+            ydata[1:-1] += rng.uniform(-0.45 * data_res, 0.45 * data_res, ydata.size - 2)
         xmesh, ymesh = np.meshgrid(xdata, ydata, indexing="ij")
         zmesh = xmesh**2 + ymesh**2
 
@@ -77,7 +78,7 @@ if __name__ == "__main__":
         zinterp = xinterpmesh**2 + yinterpmesh**2
 
         if kind == "Regular":
-            dims = np.asarray([6, 6])
+            dims = np.asarray([xdata.size, ydata.size])
             starts = np.asarray([-3.0, -3.0])
             steps = np.asarray([xmesh[1, 0] - xmesh[0,0], ymesh[0, 1] - ymesh[0, 0]])
             z_interpn = MulticubicRegular.new(dims, starts, steps, zmesh).eval([xinterpmesh.flatten(), yinterpmesh.flatten()]).reshape(xinterpmesh.shape)
@@ -96,8 +97,9 @@ if __name__ == "__main__":
             plt.imshow(z.T, origin="lower", extent=[-5.0, 5.0, -5.0, 5.0])
             plt.contour(xinterpmesh, yinterpmesh, z.T, colors='k', levels=6)
             plt.gca().add_patch(plt.Rectangle((-3.0, -3.0), 6.0, 6.0, edgecolor='w', fill=False, label="Interpolating Region"))
+            plt.scatter(xmesh.flatten(), ymesh.flatten(), marker="o", s=3, color='w', label="Data")
             plt.title(title)
-            plt.legend()
+            plt.legend(facecolor='k', labelcolor='w', framealpha=0.5)
 
             plt.sca(axes[i + 3])
             if title == "Truth":
@@ -108,10 +110,10 @@ if __name__ == "__main__":
             plt.title("Error, " + title.split()[0])
             plt.axis("off")
             plt.colorbar()
-            plt.legend()
+            plt.legend(facecolor='k', labelcolor='w', framealpha=0.5)
     
         plt.tight_layout()
-        plt.savefig(Path(__file__).parent / f"docs/2d_quality_of_fit_{kind}.svg")
+        plt.savefig(Path(__file__).parent / f"../docs/2d_quality_of_fit_{kind}.svg")
 
     testing = (len(sys.argv) > 1) and (sys.argv[1] == "test")
     if not testing:
