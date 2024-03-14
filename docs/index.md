@@ -26,6 +26,8 @@ The methods provided here, while more limited in scope than scipy's, are
 * can also be used easily in web and embedded applications via the Rust library
 * are permissively licensed
 
+![ND throughput 1 obs](./throughput_vs_dims_1_obs.svg)
+
 See [here](https://interpnpy.readthedocs.io/en/latest/perf/) for more info about quality-of-fit, throughput, and memory usage.
 
 ## Installation
