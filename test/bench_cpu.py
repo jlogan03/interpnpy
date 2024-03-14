@@ -311,7 +311,7 @@ def bench_3_dims_n_obs_unordered():
             plt.title(f"{kind}" + with_alloc_string)
 
         plt.tight_layout()
-        with_alloc_string = "\n_prealloc" if preallocate else ""
+        with_alloc_string = "_prealloc" if preallocate else ""
         plt.savefig(Path(__file__).parent / f"../docs/3d_throughput_vs_nobs{with_alloc_string}.svg")
         plt.show(block=False)
 
@@ -449,7 +449,7 @@ def bench_6_dims_n_obs_unordered():
             plt.title(f"{kind}" + with_alloc_string)
 
         plt.tight_layout()
-        with_alloc_string = "\n_prealloc" if preallocate else ""
+        with_alloc_string = "_prealloc" if preallocate else ""
         plt.savefig(Path(__file__).parent / f"../docs/6d_throughput_vs_nobs{with_alloc_string}.svg")
         plt.show(block=False)
 
