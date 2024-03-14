@@ -219,6 +219,40 @@ macro_rules! interpn_cubic_regular_impl {
 interpn_cubic_regular_impl!(interpn_cubic_regular_f64, f64);
 interpn_cubic_regular_impl!(interpn_cubic_regular_f32, f32);
 
+macro_rules! interpn_cubic_rectilinear_impl {
+    ($funcname:ident, $T:ty) => {
+        #[pyfunction]
+        fn $funcname(
+            grids: Vec<&PyArray1<$T>>,
+            vals: &PyArray1<$T>,
+            linearize_extrapolation: bool,
+            obs: Vec<&PyArray1<$T>>,
+            out: &PyArray1<$T>,
+        ) -> PyResult<()> {
+            // Unpack inputs
+            unpack_vec_of_arr!(grids, grids, $T);
+
+            let valsro = vals.readonly();
+            let vals = valsro.as_slice()?;
+
+            unpack_vec_of_arr!(obs, obs, $T);
+
+            // Get output as mutable
+            let mut outrw = out.try_readwrite()?;
+            let out = outrw.as_slice_mut()?;
+
+            // Evaluate
+            match multicubic::rectilinear::interpn(grids, vals, linearize_extrapolation, obs, out) {
+                Ok(()) => Ok(()),
+                Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
+            }
+        }
+    };
+}
+
+interpn_cubic_rectilinear_impl!(interpn_cubic_rectilinear_f64, f64);
+interpn_cubic_rectilinear_impl!(interpn_cubic_rectilinear_f32, f32);
+
 /// Python bindings for select functions from `interpn`.
 #[pymodule]
 #[pyo3(name = "_interpn")]
@@ -236,5 +270,8 @@ fn interpnpy(_py: Python, m: &PyModule) -> PyResult<()> {
     // Multicubic with regular grid
     m.add_function(wrap_pyfunction!(interpn_cubic_regular_f64, m)?)?;
     m.add_function(wrap_pyfunction!(interpn_cubic_regular_f32, m)?)?;
+    // Multicubic with rectilinear grid
+    m.add_function(wrap_pyfunction!(interpn_cubic_rectilinear_f64, m)?)?;
+    m.add_function(wrap_pyfunction!(interpn_cubic_rectilinear_f32, m)?)?;
     Ok(())
 }

@@ -47,7 +47,7 @@ class MultilinearRectilinear(BaseModel):
         mixing pydantic and numpy.
 
         Args:
-            grids: Arrays for grid coordinate values.
+            grids: 1D arrays of grid coordinate values.
                    All grids must be monotonically increasing.
             vals: Values at grid points in C-style ordering,
                   as obtained from np.meshgrid(..., indexing="ij")

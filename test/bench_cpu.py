@@ -1,15 +1,21 @@
 import gc
+from pathlib import Path
 
 from timeit import timeit
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator, RectBivariateSpline
 import matplotlib.pyplot as plt
 
-from interpn import MultilinearRectilinear, MultilinearRegular, MulticubicRegular
+from interpn import (
+    MultilinearRectilinear,
+    MultilinearRegular,
+    MulticubicRegular,
+    MulticubicRectilinear,
+)
 
 
 def bench_6_dims_1_obs():
-    nbench = 100  # Bench iterations
+    nbench = 30  # Bench iterations
     preallocate = False  # Whether to preallocate output array for InterpN
     ndims = 6  # Number of grid dimensions
     ngrid = 4  # Size of grid on each dimension
@@ -43,6 +49,7 @@ def bench_6_dims_1_obs():
     rectilinear_interpn = MultilinearRectilinear.new(grids, zgrid)
     regular_interpn = MultilinearRegular.new(dims, starts, steps, zgrid)
     cubic_regular_interpn = MulticubicRegular.new(dims, starts, steps, zgrid)
+    cubic_rectilinear_interpn = MulticubicRectilinear.new(grids, zgrid)
 
     # Preallocate output for potential perf advantage
     # Allocate at eval for 1:1 comparison with Scipy
@@ -53,6 +60,9 @@ def bench_6_dims_1_obs():
         "InterpN MultilinearRegular": lambda p: regular_interpn.eval(p, out),
         "InterpN MultilinearRectilinear": lambda p: rectilinear_interpn.eval(p, out),
         "InterpN MulticubicRegular": lambda p: cubic_regular_interpn.eval(p, out),
+        "InterpN MulticubicRectilinear": lambda p: cubic_rectilinear_interpn.eval(
+            p, out
+        ),
         "numpy interp": lambda p: np.interp(p[0], grids[0], zgrid),  # 1D only
     }
 
@@ -65,6 +75,7 @@ def bench_6_dims_1_obs():
         "InterpN MultilinearRegular": points_interpn,
         "InterpN MultilinearRectilinear": points_interpn,
         "InterpN MulticubicRegular": points_interpn,
+        "InterpN MulticubicRectilinear": points_interpn,
         "numpy interp": points_interpn,
     }
 
@@ -82,22 +93,23 @@ def bench_6_dims_1_obs():
         print(f"Throughput {throughput:.2e} #/s")
 
     # Interpolation in random order
-    points_interpn = [np.random.permutation(x.flatten()) for x in obsgrid]
-    points_sp = np.array(points_interpn).T
-    points = {
-        "Scipy RegularGridInterpolator Linear": points_sp,
-        "Scipy RegularGridInterpolator Cubic": points_sp,
-        "InterpN MultilinearRegular": points_interpn,
-        "InterpN MultilinearRectilinear": points_interpn,
-        "InterpN MulticubicRegular": points_interpn,
-        "numpy interp": points_interpn,
+    points_interpn1 = [np.random.permutation(x.flatten()) for x in obsgrid]
+    points_sp1 = np.array(points_interpn1).T
+    points1 = {
+        "Scipy RegularGridInterpolator Linear": points_sp1,
+        "Scipy RegularGridInterpolator Cubic": points_sp1,
+        "InterpN MultilinearRegular": points_interpn1,
+        "InterpN MultilinearRectilinear": points_interpn1,
+        "InterpN MulticubicRegular": points_interpn1,
+        "InterpN MulticubicRectilinear": points_interpn1,
+        "numpy interp": points_interpn1,
     }
 
     print("\nInterpolation in random order")
     for name, func in interps.items():
         if name == "numpy interp" and ndims > 1:
             continue
-        p = points[name]
+        p = points1[name]
         timeit(lambda: func(p), number=nbench)  # warmup
         t = timeit(lambda: func(p), number=nbench) / nbench
         throughput = nobs / t
@@ -107,22 +119,23 @@ def bench_6_dims_1_obs():
         print(f"Throughput {throughput:.2e} #/s")
 
     # Extrapolation in corner region in random order
-    points_interpn = [np.random.permutation(x.flatten()) + 3.0 for x in obsgrid]
-    points_sp = np.array(points_interpn).T
-    points = {
-        "Scipy RegularGridInterpolator Linear": points_sp,
-        "Scipy RegularGridInterpolator Cubic": points_sp,
-        "InterpN MultilinearRegular": points_interpn,
-        "InterpN MultilinearRectilinear": points_interpn,
-        "InterpN MulticubicRegular": points_interpn,
-        "numpy interp": points_interpn,
+    points_interpn2 = [np.random.permutation(x.flatten()) + 3.0 for x in obsgrid]
+    points_sp2 = np.array(points_interpn2).T
+    points2 = {
+        "Scipy RegularGridInterpolator Linear": points_sp2,
+        "Scipy RegularGridInterpolator Cubic": points_sp2,
+        "InterpN MultilinearRegular": points_interpn2,
+        "InterpN MultilinearRectilinear": points_interpn2,
+        "InterpN MulticubicRegular": points_interpn2,
+        "InterpN MulticubicRectilinear": points_interpn2,
+        "numpy interp": points_interpn2,
     }
 
     print("\nExtrapolation to corner region in random order")
     for name, func in interps.items():
         if name == "numpy interp" and ndims > 1:
             continue
-        p = points[name]
+        p = points2[name]
         timeit(lambda: func(p), number=nbench)  # warmup
         t = timeit(lambda: func(p), number=nbench) / nbench
         throughput = nobs / t
@@ -132,25 +145,26 @@ def bench_6_dims_1_obs():
         print(f"Throughput {throughput:.2e} #/s")
 
     # Extrapolation in side region in random order
-    points_interpn = [
+    points_interpn3 = [
         np.random.permutation(x.flatten()) + (3.0 if i == 0 else 0.0)
         for i, x in enumerate(obsgrid)
     ]
-    points_sp = np.array(points_interpn).T
-    points = {
-        "Scipy RegularGridInterpolator Linear": points_sp,
-        "Scipy RegularGridInterpolator Cubic": points_sp,
-        "InterpN MultilinearRegular": points_interpn,
-        "InterpN MultilinearRectilinear": points_interpn,
-        "InterpN MulticubicRegular": points_interpn,
-        "numpy interp": points_interpn,
+    points_sp3 = np.array(points_interpn).T
+    points3 = {
+        "Scipy RegularGridInterpolator Linear": points_sp3,
+        "Scipy RegularGridInterpolator Cubic": points_sp3,
+        "InterpN MultilinearRegular": points_interpn3,
+        "InterpN MultilinearRectilinear": points_interpn3,
+        "InterpN MulticubicRegular": points_interpn3,
+        "InterpN MulticubicRectilinear": points_interpn3,
+        "numpy interp": points_interpn3,
     }
 
     print("\nExtrapolation to side region in random order")
     for name, func in interps.items():
         if name == "numpy interp" and ndims > 1:
             continue
-        p = points[name]
+        p = points3[name]
         t = timeit(lambda: func(p), number=nbench) / nbench
         throughput = nobs / t
         print("----")
@@ -160,7 +174,7 @@ def bench_6_dims_1_obs():
 
 
 def bench_3_dims_n_obs_unordered():
-    nbench = 100  # Bench iterations
+    nbench = 30  # Bench iterations
 
     for preallocate in [False, True]:
         ndims = 3  # Number of grid dimensions
@@ -185,6 +199,7 @@ def bench_3_dims_n_obs_unordered():
         rectilinear_interpn = MultilinearRectilinear.new(grids, zgrid)
         regular_interpn = MultilinearRegular.new(dims, starts, steps, zgrid)
         cubic_regular_interpn = MulticubicRegular.new(dims, starts, steps, zgrid)
+        cubic_rectilinear_interpn = MulticubicRectilinear.new(grids, zgrid)
 
         throughputs = {
             "Scipy RegularGridInterpolator Linear": [],
@@ -192,6 +207,7 @@ def bench_3_dims_n_obs_unordered():
             "InterpN MultilinearRegular": [],
             "InterpN MultilinearRectilinear": [],
             "InterpN MulticubicRegular": [],
+            "InterpN MulticubicRectilinear": [],
         }
         # ns = np.logspace(0, 5, 10, base=10)
         # ns = [int(x) for x in ns]
@@ -227,6 +243,9 @@ def bench_3_dims_n_obs_unordered():
                 "InterpN MulticubicRegular": lambda p: cubic_regular_interpn.eval(
                     p, out
                 ),
+                "InterpN MulticubicRectilinear": lambda p: cubic_rectilinear_interpn.eval(
+                    p, out
+                ),
             }
 
             # Interpolation in random order
@@ -238,6 +257,7 @@ def bench_3_dims_n_obs_unordered():
                 "InterpN MultilinearRegular": points_interpn,
                 "InterpN MultilinearRectilinear": points_interpn,
                 "InterpN MulticubicRegular": points_interpn,
+                "InterpN MulticubicRectilinear": points_interpn,
             }
 
             for name, func in interps.items():
@@ -251,16 +271,25 @@ def bench_3_dims_n_obs_unordered():
                 throughput = nobs / t
                 throughputs[name].append(throughput)
 
+        kinds = {
+            "Scipy RegularGridInterpolator Linear": "Linear",
+            "Scipy RegularGridInterpolator Cubic": "Cubic",
+            "InterpN MultilinearRegular": "Linear",
+            "InterpN MultilinearRectilinear": "Linear",
+            "InterpN MulticubicRegular": "Cubic",
+            "InterpN MulticubicRectilinear": "Cubic",
+        }
+
         linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
         alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
 
-        _fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+        _fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
         plt.suptitle("Interpolation on 20x20x20 Grid")
         for i, kind in enumerate(["Linear", "Cubic"]):
             # plt.figure()
             plt.sca(axes[i])
             throughputs_this_kind = [
-                (k, v) for k, v in throughputs.items() if kind.lower() in k.lower()
+                (k, v) for k, v in throughputs.items() if kinds[k] == kind
             ]
             all_throughputs_this_kind = sum([v for _, v in throughputs_this_kind], [])
             max_throughput = max(all_throughputs_this_kind)
@@ -280,6 +309,10 @@ def bench_3_dims_n_obs_unordered():
             plt.ylabel("Normalized Throughput")
             with_alloc_string = "\nWith Preallocated Output" if preallocate else ""
             plt.title(f"{kind}" + with_alloc_string)
+
+        plt.tight_layout()
+        with_alloc_string = "_prealloc" if preallocate else ""
+        plt.savefig(Path(__file__).parent / f"../docs/3d_throughput_vs_nobs{with_alloc_string}.svg")
         plt.show(block=False)
 
 
@@ -309,6 +342,7 @@ def bench_6_dims_n_obs_unordered():
         rectilinear_interpn = MultilinearRectilinear.new(grids, zgrid)
         regular_interpn = MultilinearRegular.new(dims, starts, steps, zgrid)
         cubic_regular_interpn = MulticubicRegular.new(dims, starts, steps, zgrid)
+        cubic_rectilinear_interpn = MulticubicRectilinear.new(grids, zgrid)
 
         throughputs = {
             "Scipy RegularGridInterpolator Linear": [],
@@ -316,6 +350,7 @@ def bench_6_dims_n_obs_unordered():
             "InterpN MultilinearRegular": [],
             "InterpN MultilinearRectilinear": [],
             "InterpN MulticubicRegular": [],
+            "InterpN MulticubicRectilinear": [],
         }
         # ns = np.logspace(0, 4, 40, base=10)
         # ns = [int(x) for x in ns]
@@ -349,6 +384,9 @@ def bench_6_dims_n_obs_unordered():
                 "InterpN MulticubicRegular": lambda p: cubic_regular_interpn.eval(
                     p, out
                 ),
+                "InterpN MulticubicRectilinear": lambda p: cubic_rectilinear_interpn.eval(
+                    p, out
+                ),
             }
 
             # Interpolation in random order
@@ -360,6 +398,7 @@ def bench_6_dims_n_obs_unordered():
                 "InterpN MultilinearRegular": points_interpn,
                 "InterpN MultilinearRectilinear": points_interpn,
                 "InterpN MulticubicRegular": points_interpn,
+                "InterpN MulticubicRectilinear": points_interpn,
             }
 
             for name, func in interps.items():
@@ -371,15 +410,24 @@ def bench_6_dims_n_obs_unordered():
                 throughput = nobs / t
                 throughputs[name].append(throughput)
 
+        kinds = {
+            "Scipy RegularGridInterpolator Linear": "Linear",
+            "Scipy RegularGridInterpolator Cubic": "Cubic",
+            "InterpN MultilinearRegular": "Linear",
+            "InterpN MultilinearRectilinear": "Linear",
+            "InterpN MulticubicRegular": "Cubic",
+            "InterpN MulticubicRectilinear": "Cubic",
+        }
+
         linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
         alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
-        _fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+        _fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
         plt.suptitle("Interpolation on 4x...x4 6D Grid")
         for i, kind in enumerate(["Linear", "Cubic"]):
             # plt.figure()
             plt.sca(axes[i])
             throughputs_this_kind = [
-                (k, v) for k, v in throughputs.items() if kind.lower() in k.lower()
+                (k, v) for k, v in throughputs.items() if kinds[k] == kind
             ]
             all_throughputs_this_kind = sum([v for _, v in throughputs_this_kind], [])
             max_throughput = max(all_throughputs_this_kind)
@@ -399,17 +447,23 @@ def bench_6_dims_n_obs_unordered():
             plt.ylabel("Normalized Throughput")
             with_alloc_string = "\nWith Preallocated Output" if preallocate else ""
             plt.title(f"{kind}" + with_alloc_string)
+
+        plt.tight_layout()
+        with_alloc_string = "_prealloc" if preallocate else ""
+        plt.savefig(Path(__file__).parent / f"../docs/6d_throughput_vs_nobs{with_alloc_string}.svg")
         plt.show(block=False)
+
 
 def bench_throughput_vs_dims():
     for nobs, nbench in [(1, 1000), (1000, 10)]:
         throughputs = {
             "Scipy RegularGridInterpolator Linear": [],
             "Scipy RegularGridInterpolator Cubic": [],
-            "Scipy RectBivariateSpline Cubic": [],
             "InterpN MultilinearRegular": [],
             "InterpN MultilinearRectilinear": [],
             "InterpN MulticubicRegular": [],
+            "InterpN MulticubicRectilinear": [],
+            "Scipy RectBivariateSpline Cubic": [],  # Move to end to order plots
         }
         ndims_to_test = [x for x in range(1, 9)]
         for ndims in ndims_to_test:
@@ -426,15 +480,14 @@ def bench_throughput_vs_dims():
 
             # Initialize all interpolator methods
             # Scipy RegularGridInterpolator is actually a more general rectilinear method
-            rectilinear_sp = RegularGridInterpolator(
-                grids, z.copy(), bounds_error=None
-            )
+            rectilinear_sp = RegularGridInterpolator(grids, z.copy(), bounds_error=None)
             cubic_rectilinear_sp = RegularGridInterpolator(
                 grids, z.copy(), bounds_error=None, method="cubic"
             )
             rectilinear_interpn = MultilinearRectilinear.new(grids, zgrid)
             regular_interpn = MultilinearRegular.new(dims, starts, steps, zgrid)
             cubic_regular_interpn = MulticubicRegular.new(dims, starts, steps, zgrid)
+            cubic_rectilinear_interpn = MulticubicRectilinear.new(grids, zgrid)
 
             m = max(int(float(nobs) ** (1.0 / ndims) + 2), 2)
 
@@ -454,15 +507,20 @@ def bench_throughput_vs_dims():
                 "Scipy RegularGridInterpolator Linear": rectilinear_sp,
                 "Scipy RegularGridInterpolator Cubic": cubic_rectilinear_sp,
                 "InterpN MultilinearRegular": lambda p: regular_interpn.eval(p),
-                "InterpN MultilinearRectilinear": lambda p: rectilinear_interpn.eval(
+                "InterpN MultilinearRectilinear": lambda p: rectilinear_interpn.eval(p),
+                "InterpN MulticubicRegular": lambda p: cubic_regular_interpn.eval(p),
+                "InterpN MulticubicRectilinear": lambda p: cubic_rectilinear_interpn.eval(
                     p
                 ),
-                "InterpN MulticubicRegular":  lambda p: cubic_regular_interpn.eval(p),
             }
 
             if ndims == 2:
-                cubic_rbs_sp = RectBivariateSpline(grids[0], grids[1], z.copy(), kx=3, ky=3, s=0)
-                interps["Scipy RectBivariateSpline Cubic"] = lambda p: cubic_rbs_sp(*p, grid=False)
+                cubic_rbs_sp = RectBivariateSpline(
+                    grids[0], grids[1], z.copy(), kx=3, ky=3, s=0
+                )
+                interps["Scipy RectBivariateSpline Cubic"] = lambda p: cubic_rbs_sp(
+                    *p, grid=False
+                )
             else:
                 if "Scipy RectBivariateSpline Cubic" in interps.keys():
                     interps.pop("Scipy RectBivariateSpline Cubic")
@@ -477,6 +535,7 @@ def bench_throughput_vs_dims():
                 "InterpN MultilinearRegular": points_interpn,
                 "InterpN MultilinearRectilinear": points_interpn,
                 "InterpN MulticubicRegular": points_interpn,
+                "InterpN MulticubicRectilinear": points_interpn,
             }
 
             for name, func in interps.items():
@@ -489,14 +548,28 @@ def bench_throughput_vs_dims():
                 throughput = nobs / t
                 throughputs[name].append(throughput)
 
+        kinds = {
+            "Scipy RegularGridInterpolator Linear": "Linear",
+            "Scipy RegularGridInterpolator Cubic": "Cubic",
+            "Scipy RectBivariateSpline Cubic": "Cubic",
+            "InterpN MultilinearRegular": "Linear",
+            "InterpN MultilinearRectilinear": "Linear",
+            "InterpN MulticubicRegular": "Cubic",
+            "InterpN MulticubicRectilinear": "Cubic",
+        }
+
         linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
         alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
 
-        _fig, axes = plt.subplots(1,2, figsize=(12,6), sharey=True)
-        plt.suptitle(f"Interpolation on 4x...x4 N-Dimensional Grid\n{nobs} Observation Point(s)")
+        _fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), sharey=True)
+        plt.suptitle(
+            f"Interpolation on 4x...x4 N-Dimensional Grid\n{nobs} Observation Point(s)"
+        )
         for i, kind in enumerate(["Linear", "Cubic"]):
             plt.sca(axes[i])
-            throughputs_this_kind = [(k,v) for k, v in throughputs.items() if kind.lower() in k.lower()]
+            throughputs_this_kind = [
+                (k, v) for k, v in throughputs.items() if kinds[k] == kind
+            ]
             all_throughputs_this_kind = sum([v for _, v in throughputs_this_kind], [])
             max_throughput = max(all_throughputs_this_kind)
             for i, (k, v) in enumerate(throughputs_this_kind):
@@ -516,10 +589,10 @@ def bench_throughput_vs_dims():
                         [2],
                         normalized_throughput,
                         marker="o",
-                        markersize=10,
+                        markersize=5,
                         color="k",
                         linewidth=2,
-                        linestyle=linestyles[i],
+                        linestyle=None,
                         label=k,
                         alpha=alpha[i],
                     )
@@ -527,7 +600,11 @@ def bench_throughput_vs_dims():
             plt.xlabel("Number of Dimensions")
             plt.ylabel("Normalized Throughput")
             plt.title(kind)
-            plt.show(block=False)
+
+        plt.tight_layout()
+        plt.savefig(Path(__file__).parent / f"../docs/throughput_vs_dims_{nobs}_obs.svg")
+        plt.show(block=False)
+
 
 if __name__ == "__main__":
     bench_throughput_vs_dims()
