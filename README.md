@@ -8,12 +8,14 @@ Python bindings to the `interpn` Rust library for N-dimensional interpolation an
 [Rust Docs (docs.rs)](https://docs.rs/interpn/latest/interpn/)
 
 ## Features
+
 | Feature →<br>↓ Interpolant Method | Regular<br>Grid | Rectilinear<br>Grid | Json<br>Serialization |
 |-----------------------------------|-----------------|---------------------|-----------------------|
 | Linear                            |   ✅            |     ✅              | ✅                    |
 | Cubic                             |   ✅            |     ✅              | ✅                    |
 
 The methods provided here, while more limited in scope than scipy's, are
+
 * significantly faster for higher dimensions (1-3 orders of magnitude under most conditions)
 * use almost no RAM (and perform no heap allocations at all)
 * produce significantly improved floating-point error (by 1-2 orders of magnitude)
@@ -100,6 +102,7 @@ assert np.all(out == out2)
 
 
 # License
+
 Licensed under either of
 
 - Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
