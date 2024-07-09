@@ -5,4 +5,4 @@
 ### Changed
 
 * Update python deps incl. numpy >2
-* Support python 12 and 13
+* Support python 3.12
