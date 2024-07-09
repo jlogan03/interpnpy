@@ -19,6 +19,7 @@ effective when examining small numbers of observation points. See the [performan
 | Cubic                             |   ✅            |     ✅              | ✅                    |
 
 The methods provided here, while more limited in scope than scipy's, are
+
 * significantly faster for higher dimensions (1-3 orders of magnitude under most conditions)
 * use almost no RAM (and perform no heap allocations at all)
 * produce significantly improved floating-point error (by 1-2 orders of magnitude)
@@ -102,3 +103,12 @@ out2 = roundtrip_interpolator.eval(obs)
 # Check result from roundtrip serialized/deserialized interpolator
 assert np.all(out == out2)
 ```
+
+# License
+
+Licensed under either of
+
+- Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+
+at your option.
