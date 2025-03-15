@@ -1,4 +1,4 @@
-use numpy::PyArray1;
+use numpy::{PyArray1, PyArrayMethods};
 use pyo3::exceptions;
 use pyo3::prelude::*;
 
@@ -37,13 +37,13 @@ macro_rules! unpack_vec_of_arr {
 macro_rules! interpn_linear_regular_impl {
     ($funcname:ident, $T:ty) => {
         #[pyfunction]
-        fn $funcname(
+        fn $funcname<'py>(
             dims: Vec<usize>, // numpy index arrays are signed; this avoids casting
-            starts: &PyArray1<$T>,
-            steps: &PyArray1<$T>,
-            vals: &PyArray1<$T>,
-            obs: Vec<&PyArray1<$T>>,
-            out: &PyArray1<$T>,
+            starts: Bound<'py, PyArray1<$T>>,
+            steps: Bound<'py, PyArray1<$T>>,
+            vals: Bound<'py, PyArray1<$T>>,
+            obs: Vec<Bound<'py, PyArray1<$T>>>,
+            out: Bound<'py, PyArray1<$T>>,
         ) -> PyResult<()> {
             // Unpack inputs
             let startsro = starts.readonly();
@@ -76,13 +76,13 @@ interpn_linear_regular_impl!(interpn_linear_regular_f32, f32);
 macro_rules! check_bounds_regular_impl {
     ($funcname:ident, $T:ty) => {
         #[pyfunction]
-        fn $funcname(
+        fn $funcname<'py>(
             dims: Vec<usize>, // numpy index arrays are signed; this avoids casting
-            starts: &PyArray1<$T>,
-            steps: &PyArray1<$T>,
-            obs: Vec<&PyArray1<$T>>,
+            starts: Bound<'py, PyArray1<$T>>,
+            steps: Bound<'py, PyArray1<$T>>,
+            obs: Vec<Bound<'py, PyArray1<$T>>>,
             atol: $T,
-            out: &PyArray1<bool>,
+            out: Bound<'py, PyArray1<bool>>,
         ) -> PyResult<()> {
             // Unpack inputs
             let startsro = starts.readonly();
@@ -112,11 +112,11 @@ check_bounds_regular_impl!(check_bounds_regular_f32, f32);
 macro_rules! interpn_linear_rectilinear_impl {
     ($funcname:ident, $T:ty) => {
         #[pyfunction]
-        fn $funcname(
-            grids: Vec<&PyArray1<$T>>,
-            vals: &PyArray1<$T>,
-            obs: Vec<&PyArray1<$T>>,
-            out: &PyArray1<$T>,
+        fn $funcname<'py>(
+            grids: Vec<Bound<'py, PyArray1<$T>>>,
+            vals: Bound<'py, PyArray1<$T>>,
+            obs: Vec<Bound<'py, PyArray1<$T>>>,
+            out: Bound<'py, PyArray1<$T>>,
         ) -> PyResult<()> {
             // Unpack inputs
             unpack_vec_of_arr!(grids, grids, $T);
@@ -145,11 +145,11 @@ interpn_linear_rectilinear_impl!(interpn_linear_rectilinear_f32, f32);
 macro_rules! check_bounds_rectilinear_impl {
     ($funcname:ident, $T:ty) => {
         #[pyfunction]
-        fn $funcname(
-            grids: Vec<&PyArray1<$T>>,
-            obs: Vec<&PyArray1<$T>>,
+        fn $funcname<'py>(
+            grids: Vec<Bound<'py, PyArray1<$T>>>,
+            obs: Vec<Bound<'py, PyArray1<$T>>>,
             atol: $T,
-            out: &PyArray1<bool>,
+            out: Bound<'py, PyArray1<bool>>,
         ) -> PyResult<()> {
             // Unpack inputs
             unpack_vec_of_arr!(grids, grids, $T);
@@ -174,14 +174,14 @@ check_bounds_rectilinear_impl!(check_bounds_rectilinear_f32, f32);
 macro_rules! interpn_cubic_regular_impl {
     ($funcname:ident, $T:ty) => {
         #[pyfunction]
-        fn $funcname(
+        fn $funcname<'py>(
             dims: Vec<usize>, // numpy index arrays are signed; this avoids casting
-            starts: &PyArray1<$T>,
-            steps: &PyArray1<$T>,
-            vals: &PyArray1<$T>,
+            starts: Bound<'py, PyArray1<$T>>,
+            steps: Bound<'py, PyArray1<$T>>,
+            vals: Bound<'py, PyArray1<$T>>,
             linearize_extrapolation: bool,
-            obs: Vec<&PyArray1<$T>>,
-            out: &PyArray1<$T>,
+            obs: Vec<Bound<'py, PyArray1<$T>>>,
+            out: Bound<'py, PyArray1<$T>>,
         ) -> PyResult<()> {
             // Unpack inputs
             let startsro = starts.readonly();
@@ -222,12 +222,12 @@ interpn_cubic_regular_impl!(interpn_cubic_regular_f32, f32);
 macro_rules! interpn_cubic_rectilinear_impl {
     ($funcname:ident, $T:ty) => {
         #[pyfunction]
-        fn $funcname(
-            grids: Vec<&PyArray1<$T>>,
-            vals: &PyArray1<$T>,
+        fn $funcname<'py>(
+            grids: Vec<Bound<'py, PyArray1<$T>>>,
+            vals: Bound<'py, PyArray1<$T>>,
             linearize_extrapolation: bool,
-            obs: Vec<&PyArray1<$T>>,
-            out: &PyArray1<$T>,
+            obs: Vec<Bound<'py, PyArray1<$T>>>,
+            out: Bound<'py, PyArray1<$T>>,
         ) -> PyResult<()> {
             // Unpack inputs
             unpack_vec_of_arr!(grids, grids, $T);
@@ -256,7 +256,7 @@ interpn_cubic_rectilinear_impl!(interpn_cubic_rectilinear_f32, f32);
 /// Python bindings for select functions from `interpn`.
 #[pymodule]
 #[pyo3(name = "_interpn")]
-fn interpnpy(_py: Python, m: &PyModule) -> PyResult<()> {
+fn interpnpy<'py>(_py: Python, m: &Bound<'py, PyModule>) -> PyResult<()> {
     // Multilinear regular grid
     m.add_function(wrap_pyfunction!(interpn_linear_regular_f64, m)?)?;
     m.add_function(wrap_pyfunction!(interpn_linear_regular_f32, m)?)?;

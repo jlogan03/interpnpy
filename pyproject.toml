@@ -4,18 +4,17 @@ build-backend = "maturin"
 
 [project]
 name = "interpn"
-version = "0.2.3"
+version = "0.2.4"
 repository = "https://github.com/jlogan03/interpnpy"
 documentation = "https://interpn.readthedocs.io/"
 description = "N-dimensional interpolation/extrapolation methods"
-authors = [{ author = "James Logan", email = "jlogan03@gmail.com" }]
-requires-python = ">=3.9, <3.13"
+authors = [{ name = "James Logan", email = "jlogan03@gmail.com" }]
+requires-python = ">=3.9, <3.14"
 classifiers = [
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dynamic = ["version"]
 dependencies = [
     "numpy >= 2",
     "pydantic >= 2.5.2",

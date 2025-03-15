@@ -465,7 +465,7 @@ def bench_throughput_vs_dims():
             "InterpN MulticubicRectilinear": [],
             "Scipy RectBivariateSpline Cubic": [],  # Move to end to order plots
         }
-        ndims_to_test = [x for x in range(1, 9)]
+        ndims_to_test = [x for x in range(1, 7)]
         for ndims in ndims_to_test:
             ngrid = 4  # Size of grid on each dimension
 
