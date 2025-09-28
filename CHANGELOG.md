@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.6 2025-09-27
+
+2-5x speedup and fully-analyzable call stack (no recursion) for lower dimensions
+(1D-6D linear, 1D-4D cubic). Recursive methods still available for higher dimensions.
+
+### Changed
+
+* Update rust deps
+* Reduce boilerplate in bindings
+* Update perf plots
+
 ## 0.2.5 2025-03-14
 
 ### Changed

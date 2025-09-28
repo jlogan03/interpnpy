@@ -45,24 +45,17 @@ macro_rules! interpn_linear_regular_impl {
             obs: Vec<Bound<'py, PyArray1<$T>>>,
             out: Bound<'py, PyArray1<$T>>,
         ) -> PyResult<()> {
-            // Unpack inputs
-            let startsro = starts.readonly();
-            let starts = startsro.as_slice()?;
-
-            let stepsro = steps.readonly();
-            let steps = stepsro.as_slice()?;
-
-            let valsro = vals.readonly();
-            let vals = valsro.as_slice()?;
-
             unpack_vec_of_arr!(obs, obs, $T);
 
-            // Get output as mutable
-            let mut outrw = out.try_readwrite()?;
-            let out = outrw.as_slice_mut()?;
-
             // Evaluate
-            match multilinear::regular::interpn(&dims, starts, steps, vals, obs, out) {
+            match multilinear::regular::interpn(
+                &dims,
+                starts.readonly().as_slice()?,
+                steps.readonly().as_slice()?,
+                vals.readonly().as_slice()?,
+                obs,
+                out.try_readwrite()?.as_slice_mut()?,
+            ) {
                 Ok(()) => Ok(()),
                 Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
             }
@@ -84,21 +77,17 @@ macro_rules! check_bounds_regular_impl {
             atol: $T,
             out: Bound<'py, PyArray1<bool>>,
         ) -> PyResult<()> {
-            // Unpack inputs
-            let startsro = starts.readonly();
-            let starts = startsro.as_slice()?;
-
-            let stepsro = steps.readonly();
-            let steps = stepsro.as_slice()?;
-
             unpack_vec_of_arr!(obs, obs, $T);
 
-            // Get output as mutable
-            let mut outrw = out.try_readwrite()?;
-            let out = outrw.as_slice_mut()?;
-
             // Evaluate
-            match multilinear::regular::check_bounds(&dims, starts, steps, obs, atol, out) {
+            match multilinear::regular::check_bounds(
+                &dims,
+                starts.readonly().as_slice()?,
+                steps.readonly().as_slice()?,
+                obs,
+                atol,
+                out.try_readwrite()?.as_slice_mut()?,
+            ) {
                 Ok(()) => Ok(()),
                 Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
             }
@@ -120,18 +109,15 @@ macro_rules! interpn_linear_rectilinear_impl {
         ) -> PyResult<()> {
             // Unpack inputs
             unpack_vec_of_arr!(grids, grids, $T);
-
-            let valsro = vals.readonly();
-            let vals = valsro.as_slice()?;
-
             unpack_vec_of_arr!(obs, obs, $T);
 
-            // Get output as mutable
-            let mut outrw = out.try_readwrite()?;
-            let out = outrw.as_slice_mut()?;
-
             // Evaluate
-            match multilinear::rectilinear::interpn(grids, vals, obs, out) {
+            match multilinear::rectilinear::interpn(
+                grids,
+                vals.readonly().as_slice()?,
+                obs,
+                out.try_readwrite()?.as_slice_mut()?,
+            ) {
                 Ok(()) => Ok(()),
                 Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
             }
@@ -155,12 +141,13 @@ macro_rules! check_bounds_rectilinear_impl {
             unpack_vec_of_arr!(grids, grids, $T);
             unpack_vec_of_arr!(obs, obs, $T);
 
-            // Get output as mutable
-            let mut outrw = out.try_readwrite()?;
-            let out = outrw.as_slice_mut()?;
-
             // Evaluate
-            match multilinear::rectilinear::check_bounds(&grids, obs, atol, out) {
+            match multilinear::rectilinear::check_bounds(
+                &grids,
+                obs,
+                atol,
+                out.try_readwrite()?.as_slice_mut()?,
+            ) {
                 Ok(()) => Ok(()),
                 Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
             }
@@ -183,31 +170,17 @@ macro_rules! interpn_cubic_regular_impl {
             obs: Vec<Bound<'py, PyArray1<$T>>>,
             out: Bound<'py, PyArray1<$T>>,
         ) -> PyResult<()> {
-            // Unpack inputs
-            let startsro = starts.readonly();
-            let starts = startsro.as_slice()?;
-
-            let stepsro = steps.readonly();
-            let steps = stepsro.as_slice()?;
-
-            let valsro = vals.readonly();
-            let vals = valsro.as_slice()?;
-
             unpack_vec_of_arr!(obs, obs, $T);
-
-            // Get output as mutable
-            let mut outrw = out.try_readwrite()?;
-            let out = outrw.as_slice_mut()?;
 
             // Evaluate
             match multicubic::regular::interpn(
                 &dims,
-                starts,
-                steps,
-                vals,
+                starts.readonly().as_slice()?,
+                steps.readonly().as_slice()?,
+                vals.readonly().as_slice()?,
                 linearize_extrapolation,
                 obs,
-                out,
+                out.try_readwrite()?.as_slice_mut()?,
             ) {
                 Ok(()) => Ok(()),
                 Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
@@ -231,18 +204,16 @@ macro_rules! interpn_cubic_rectilinear_impl {
         ) -> PyResult<()> {
             // Unpack inputs
             unpack_vec_of_arr!(grids, grids, $T);
-
-            let valsro = vals.readonly();
-            let vals = valsro.as_slice()?;
-
             unpack_vec_of_arr!(obs, obs, $T);
 
-            // Get output as mutable
-            let mut outrw = out.try_readwrite()?;
-            let out = outrw.as_slice_mut()?;
-
             // Evaluate
-            match multicubic::rectilinear::interpn(grids, vals, linearize_extrapolation, obs, out) {
+            match multicubic::rectilinear::interpn(
+                grids,
+                vals.readonly().as_slice()?,
+                linearize_extrapolation,
+                obs,
+                out.try_readwrite()?.as_slice_mut()?,
+            ) {
                 Ok(()) => Ok(()),
                 Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
             }

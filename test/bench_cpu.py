@@ -464,6 +464,7 @@ def bench_throughput_vs_dims():
             "InterpN MulticubicRegular": [],
             "InterpN MulticubicRectilinear": [],
             "Scipy RectBivariateSpline Cubic": [],  # Move to end to order plots
+            "Numpy Interp": [],
         }
         ndims_to_test = [x for x in range(1, 7)]
         for ndims in ndims_to_test:
@@ -514,6 +515,13 @@ def bench_throughput_vs_dims():
                 ),
             }
 
+            if ndims == 1:
+                np_interp = lambda p: np.interp(p[0], grids[0], zgrid)
+                interps["Numpy Interp"] = np_interp
+            else:
+                if "Numpy Interp" in interps.keys():
+                    interps.pop("Numpy Interp")
+
             if ndims == 2:
                 cubic_rbs_sp = RectBivariateSpline(
                     grids[0], grids[1], z.copy(), kx=3, ky=3, s=0
@@ -536,6 +544,7 @@ def bench_throughput_vs_dims():
                 "InterpN MultilinearRectilinear": points_interpn,
                 "InterpN MulticubicRegular": points_interpn,
                 "InterpN MulticubicRectilinear": points_interpn,
+                "Numpy Interp": points_interpn
             }
 
             for name, func in interps.items():
@@ -556,6 +565,7 @@ def bench_throughput_vs_dims():
             "InterpN MultilinearRectilinear": "Linear",
             "InterpN MulticubicRegular": "Cubic",
             "InterpN MulticubicRectilinear": "Cubic",
+            "Numpy Interp": "Linear",
         }
 
         linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
@@ -574,17 +584,7 @@ def bench_throughput_vs_dims():
             max_throughput = max(all_throughputs_this_kind)
             for i, (k, v) in enumerate(throughputs_this_kind):
                 normalized_throughput = np.array(v) / max_throughput
-                if k != "Scipy RectBivariateSpline Cubic":
-                    plt.semilogy(
-                        ndims_to_test,
-                        normalized_throughput,
-                        color="k",
-                        linewidth=2,
-                        linestyle=linestyles[i],
-                        label=k,
-                        alpha=alpha[i],
-                    )
-                else:
+                if k == "Scipy RectBivariateSpline Cubic":
                     plt.semilogy(
                         [2],
                         normalized_throughput,
@@ -593,6 +593,28 @@ def bench_throughput_vs_dims():
                         color="k",
                         linewidth=2,
                         linestyle=None,
+                        label=k,
+                        alpha=alpha[i],
+                    )
+                elif k == "Numpy Interp":
+                    plt.semilogy(
+                        [1],
+                        normalized_throughput,
+                        marker="s",
+                        markersize=5,
+                        color="k",
+                        linewidth=2,
+                        linestyle=None,
+                        label=k,
+                        alpha=alpha[i],
+                    )
+                else:
+                    plt.semilogy(
+                        ndims_to_test,
+                        normalized_throughput,
+                        color="k",
+                        linewidth=2,
+                        linestyle=linestyles[i],
                         label=k,
                         alpha=alpha[i],
                     )
