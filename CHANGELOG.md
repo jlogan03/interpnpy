@@ -10,6 +10,7 @@
 * Update rust deps
 * Reduce boilerplate in bindings
 * Update perf plots
+* Use abi3-py39 for extension module build
 
 ## 0.2.5 2025-03-14
 
