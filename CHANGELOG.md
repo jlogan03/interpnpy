@@ -1,17 +1,5 @@
 # Changelog
 
-## 0.2.8 2025-09-28
-
-### Changed
-
-* Specify python executable name for windows build instead of using generate-import-lib
-
-## 0.2.7 2025-09-28
-
-### Changed
-
-* Use pyo3's `generate-import-lib` feature to resolve build issues on 32-bit Windows
-
 ## 0.2.6 2025-09-27
 
 2-5x speedup and fully-analyzable call stack (no recursion) for lower dimensions
