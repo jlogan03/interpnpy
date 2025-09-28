@@ -26,7 +26,7 @@ macro_rules! unpack_vec_of_arr {
                 None => {
                     return Err(exceptions::PyAssertionError::new_err(
                         "Failed to unpack input array",
-                    ))
+                    ));
                 }
             }
         }
