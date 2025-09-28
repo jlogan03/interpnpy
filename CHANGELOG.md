@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.8 2025-09-28
+
+### Changed
+
+* Specify python executable name for windows build instead of using generate-import-lib
+
 ## 0.2.7 2025-09-28
 
 ### Changed
