@@ -14,16 +14,16 @@ Python bindings to the `interpn` Rust library for N-dimensional interpolation an
 | Linear                            |   ✅            |     ✅              | ✅                    |
 | Cubic                             |   ✅            |     ✅              | ✅                    |
 
-The methods provided here, while more limited in scope than scipy's, are
+The methods provided here, while more limited in scope than scipy's,
 
-* significantly faster for higher dimensions (1-3 orders of magnitude under most conditions)
+* are significantly faster under most conditions
 * use almost no RAM (and perform no heap allocations at all)
-* produce significantly improved floating-point error (by 1-2 orders of magnitude)
+* produce significantly improved floating-point error (by several orders of magnitude)
 * are json-serializable using Pydantic
 * can also be used easily in web and embedded applications via the Rust library
 * are permissively licensed
 
-![ND throughput 1 obs](./docs/throughput_vs_dims_1_obs.svg)
+![ND throughput 1000 obs](./docs/throughput_vs_dims_1000_obs.svg)
 
 See [here](https://interpnpy.readthedocs.io/en/latest/perf/) for more info about quality-of-fit, throughput, and memory usage.
 
