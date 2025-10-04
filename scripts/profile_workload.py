@@ -7,9 +7,9 @@ import numpy as np
 
 from interpn import MulticubicRectilinear, MulticubicRegular, MultilinearRectilinear, MultilinearRegular
 
-_OBSERVATION_COUNTS = (1, 1000)
-_MAX_DIMS = 6
-_GRID_SIZE = 4
+_OBSERVATION_COUNTS = (1, 5)
+_MAX_DIMS = 4
+_GRID_SIZE = 10
 
 
 def _observation_points(
