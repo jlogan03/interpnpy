@@ -1,248 +1,121 @@
-use numpy::{PyArray1, PyArrayMethods};
-use pyo3::exceptions;
-use pyo3::prelude::*;
+//! N-dimensional interpolation/extrapolation methods, no-std and no-alloc compatible,
+//! prioritizing correctness, performance, and compatiblity with memory-constrained environments.
+//!
+//! # Performance Scalings
+//! Note that for a self-consistent multidimensional linear interpolation, there are 2^ndims grid values that contribute
+//! to each observation point, and as such, that is the theoretical floor for performance scaling. That said,
+//! depending on the implementation, the constant term can vary by more than an order of magnitude.
+//!
+//! Cubic interpolations require two more degrees of freedom per dimension, and have a minimal runtime scaling of 4^ndims.
+//! Similar to the linear methods, depending on implementation, the constant term can vary by orders of magnitude,
+//! as can the RAM usage.
+//!
+//! Rectilinear methods perform a bisection search to find the relevant grid cell, which takes
+//! a worst-case number of iterations of log2(number of grid elements).
+//!
+//! | Method                        | RAM       | Interp. / Extrap. Cost       |
+//! |-------------------------------|-----------|------------------------------|
+//! | multilinear::regular          | O(ndims)  | O(2^ndims)                   |
+//! | multilinear::rectilinear      | O(ndims)  | O(2^ndims) + log2(gridsize)  |
+//! | multicubic::regular           | O(ndims)  | O(4^ndims)                   |
+//! | multicubic::rectilinear       | O(ndims)  | O(4^ndims) + log2(gridsize)  |
+//!
+//! # Example: Multilinear and Multicubic w/ Regular Grid
+//! ```rust
+//! use interpn::{multilinear, multicubic};
+//!
+//! // Define a grid
+//! let x = [1.0_f64, 2.0, 3.0, 4.0];
+//! let y = [0.0_f64, 1.0, 2.0, 3.0];
+//!
+//! // Grid input for rectilinear method
+//! let grids = &[&x[..], &y[..]];
+//!
+//! // Grid input for regular grid method
+//! let dims = [x.len(), y.len()];
+//! let starts = [x[0], y[0]];
+//! let steps = [x[1] - x[0], y[1] - y[0]];
+//!
+//! // Values at grid points
+//! let z = [2.0; 16];
+//!
+//! // Observation points to interpolate/extrapolate
+//! let xobs = [0.0_f64, 5.0];
+//! let yobs = [-1.0, 3.0];
+//! let obs = [&xobs[..], &yobs[..]];
+//!
+//! // Storage for output
+//! let mut out = [0.0; 2];
+//!
+//! // Do interpolation
+//! multilinear::regular::interpn(&dims, &starts, &steps, &z, &obs, &mut out);
+//! multicubic::regular::interpn(&dims, &starts, &steps, &z, false, &obs, &mut out);
+//! ```
+//!
+//! # Example: Multilinear and Multicubic w/ Rectilinear Grid
+//! ```rust
+//! use interpn::{multilinear, multicubic};
+//!
+//! // Define a grid
+//! let x = [1.0_f64, 2.0, 3.0, 4.0];
+//! let y = [0.0_f64, 1.0, 2.0, 3.0];
+//!
+//! // Grid input for rectilinear method
+//! let grids = &[&x[..], &y[..]];
+//!
+//! // Values at grid points
+//! let z = [2.0; 16];
+//!
+//! // Points to interpolate/extrapolate
+//! let xobs = [0.0_f64, 5.0];
+//! let yobs = [-1.0, 3.0];
+//! let obs = [&xobs[..], &yobs[..]];
+//!
+//! // Storage for output
+//! let mut out = [0.0; 2];
+//!
+//! // Do interpolation
+//! multilinear::rectilinear::interpn(grids, &z, &obs, &mut out).unwrap();
+//! multicubic::rectilinear::interpn(grids, &z, false, &obs, &mut out).unwrap();
+//! ```
+//!
+//! # Development Roadmap
+//! * Methods for unstructured triangular and tetrahedral meshes
+#![cfg_attr(not(feature = "std"), no_std)]
+// These "needless" range loops are a significant speedup
+#![allow(clippy::needless_range_loop)]
+// Some const loops produce flattened code with unresolvable lints on
+// expanded code that is entirely in const.
+#![allow(clippy::absurd_extreme_comparisons)]
 
-use interpn::multicubic;
-use interpn::multilinear;
+pub mod multilinear;
+pub use multilinear::{MultilinearRectilinear, MultilinearRegular};
 
-/// Maximum number of dimensions for linear interpn convenience methods
-const MAXDIMS: usize = 8;
+pub mod multicubic;
+pub use multicubic::{MulticubicRectilinear, MulticubicRegular};
 
-macro_rules! unpack_vec_of_arr {
-    ($inname:ident, $outname:ident, $T:ty) => {
-        // We need a mutable slice-of-slice,
-        // and it has to start with a reference to something
-        let dummy = [0.0; 0];
-        let mut _arr: [&[$T]; MAXDIMS] = [&dummy[..]; MAXDIMS];
-        // PyArray readonly references are very lightweight
-        // but aren't Copy, so we can't template them out like
-        // [...; 8]
-        let mut _ro: [_; 8] = core::array::from_fn(|_| None);
-        let n = $inname.len();
-        (0..n).for_each(|i| _ro[i] = Some($inname[i].readonly()));
-        for i in 0..n {
-            match (&_ro[i]).as_ref() {
-                Some(thisro) => _arr[i] = &thisro.as_slice()?,
-                None => {
-                    return Err(exceptions::PyAssertionError::new_err(
-                        "Failed to unpack input array",
-                    ));
-                }
-            }
-        }
-        let $outname = &_arr[..n];
-    };
-}
+pub mod one_dim;
+pub use one_dim::{
+    RectilinearGrid1D, RegularGrid1D, hold::Left1D, hold::Nearest1D, hold::Right1D,
+    linear::Linear1D, linear::LinearHoldLast1D,
+};
 
-macro_rules! interpn_linear_regular_impl {
-    ($funcname:ident, $T:ty) => {
-        #[pyfunction]
-        fn $funcname<'py>(
-            dims: Vec<usize>, // numpy index arrays are signed; this avoids casting
-            starts: Bound<'py, PyArray1<$T>>,
-            steps: Bound<'py, PyArray1<$T>>,
-            vals: Bound<'py, PyArray1<$T>>,
-            obs: Vec<Bound<'py, PyArray1<$T>>>,
-            out: Bound<'py, PyArray1<$T>>,
-        ) -> PyResult<()> {
-            unpack_vec_of_arr!(obs, obs, $T);
+#[cfg(feature = "std")]
+pub mod utils;
 
-            // Evaluate
-            match multilinear::regular::interpn(
-                &dims,
-                starts.readonly().as_slice()?,
-                steps.readonly().as_slice()?,
-                vals.readonly().as_slice()?,
-                obs,
-                out.try_readwrite()?.as_slice_mut()?,
-            ) {
-                Ok(()) => Ok(()),
-                Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
-            }
-        }
-    };
-}
+#[cfg(all(test, feature = "std"))]
+pub(crate) mod testing;
 
-interpn_linear_regular_impl!(interpn_linear_regular_f64, f64);
-interpn_linear_regular_impl!(interpn_linear_regular_f32, f32);
+#[cfg(feature="python")]
+pub mod python;
 
-macro_rules! check_bounds_regular_impl {
-    ($funcname:ident, $T:ty) => {
-        #[pyfunction]
-        fn $funcname<'py>(
-            dims: Vec<usize>, // numpy index arrays are signed; this avoids casting
-            starts: Bound<'py, PyArray1<$T>>,
-            steps: Bound<'py, PyArray1<$T>>,
-            obs: Vec<Bound<'py, PyArray1<$T>>>,
-            atol: $T,
-            out: Bound<'py, PyArray1<bool>>,
-        ) -> PyResult<()> {
-            unpack_vec_of_arr!(obs, obs, $T);
+/// Index a single value from an array
+#[inline]
+pub(crate) fn index_arr<T: Copy>(loc: &[usize], dimprod: &[usize], data: &[T]) -> T {
+    let mut i = 0;
+    for j in 0..dimprod.len() {
+        i += loc[j] * dimprod[j];
+    }
 
-            // Evaluate
-            match multilinear::regular::check_bounds(
-                &dims,
-                starts.readonly().as_slice()?,
-                steps.readonly().as_slice()?,
-                obs,
-                atol,
-                out.try_readwrite()?.as_slice_mut()?,
-            ) {
-                Ok(()) => Ok(()),
-                Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
-            }
-        }
-    };
-}
-
-check_bounds_regular_impl!(check_bounds_regular_f64, f64);
-check_bounds_regular_impl!(check_bounds_regular_f32, f32);
-
-macro_rules! interpn_linear_rectilinear_impl {
-    ($funcname:ident, $T:ty) => {
-        #[pyfunction]
-        fn $funcname<'py>(
-            grids: Vec<Bound<'py, PyArray1<$T>>>,
-            vals: Bound<'py, PyArray1<$T>>,
-            obs: Vec<Bound<'py, PyArray1<$T>>>,
-            out: Bound<'py, PyArray1<$T>>,
-        ) -> PyResult<()> {
-            // Unpack inputs
-            unpack_vec_of_arr!(grids, grids, $T);
-            unpack_vec_of_arr!(obs, obs, $T);
-
-            // Evaluate
-            match multilinear::rectilinear::interpn(
-                grids,
-                vals.readonly().as_slice()?,
-                obs,
-                out.try_readwrite()?.as_slice_mut()?,
-            ) {
-                Ok(()) => Ok(()),
-                Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
-            }
-        }
-    };
-}
-
-interpn_linear_rectilinear_impl!(interpn_linear_rectilinear_f64, f64);
-interpn_linear_rectilinear_impl!(interpn_linear_rectilinear_f32, f32);
-
-macro_rules! check_bounds_rectilinear_impl {
-    ($funcname:ident, $T:ty) => {
-        #[pyfunction]
-        fn $funcname<'py>(
-            grids: Vec<Bound<'py, PyArray1<$T>>>,
-            obs: Vec<Bound<'py, PyArray1<$T>>>,
-            atol: $T,
-            out: Bound<'py, PyArray1<bool>>,
-        ) -> PyResult<()> {
-            // Unpack inputs
-            unpack_vec_of_arr!(grids, grids, $T);
-            unpack_vec_of_arr!(obs, obs, $T);
-
-            // Evaluate
-            match multilinear::rectilinear::check_bounds(
-                &grids,
-                obs,
-                atol,
-                out.try_readwrite()?.as_slice_mut()?,
-            ) {
-                Ok(()) => Ok(()),
-                Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
-            }
-        }
-    };
-}
-
-check_bounds_rectilinear_impl!(check_bounds_rectilinear_f64, f64);
-check_bounds_rectilinear_impl!(check_bounds_rectilinear_f32, f32);
-
-macro_rules! interpn_cubic_regular_impl {
-    ($funcname:ident, $T:ty) => {
-        #[pyfunction]
-        fn $funcname<'py>(
-            dims: Vec<usize>, // numpy index arrays are signed; this avoids casting
-            starts: Bound<'py, PyArray1<$T>>,
-            steps: Bound<'py, PyArray1<$T>>,
-            vals: Bound<'py, PyArray1<$T>>,
-            linearize_extrapolation: bool,
-            obs: Vec<Bound<'py, PyArray1<$T>>>,
-            out: Bound<'py, PyArray1<$T>>,
-        ) -> PyResult<()> {
-            unpack_vec_of_arr!(obs, obs, $T);
-
-            // Evaluate
-            match multicubic::regular::interpn(
-                &dims,
-                starts.readonly().as_slice()?,
-                steps.readonly().as_slice()?,
-                vals.readonly().as_slice()?,
-                linearize_extrapolation,
-                obs,
-                out.try_readwrite()?.as_slice_mut()?,
-            ) {
-                Ok(()) => Ok(()),
-                Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
-            }
-        }
-    };
-}
-
-interpn_cubic_regular_impl!(interpn_cubic_regular_f64, f64);
-interpn_cubic_regular_impl!(interpn_cubic_regular_f32, f32);
-
-macro_rules! interpn_cubic_rectilinear_impl {
-    ($funcname:ident, $T:ty) => {
-        #[pyfunction]
-        fn $funcname<'py>(
-            grids: Vec<Bound<'py, PyArray1<$T>>>,
-            vals: Bound<'py, PyArray1<$T>>,
-            linearize_extrapolation: bool,
-            obs: Vec<Bound<'py, PyArray1<$T>>>,
-            out: Bound<'py, PyArray1<$T>>,
-        ) -> PyResult<()> {
-            // Unpack inputs
-            unpack_vec_of_arr!(grids, grids, $T);
-            unpack_vec_of_arr!(obs, obs, $T);
-
-            // Evaluate
-            match multicubic::rectilinear::interpn(
-                grids,
-                vals.readonly().as_slice()?,
-                linearize_extrapolation,
-                obs,
-                out.try_readwrite()?.as_slice_mut()?,
-            ) {
-                Ok(()) => Ok(()),
-                Err(msg) => Err(exceptions::PyAssertionError::new_err(msg)),
-            }
-        }
-    };
-}
-
-interpn_cubic_rectilinear_impl!(interpn_cubic_rectilinear_f64, f64);
-interpn_cubic_rectilinear_impl!(interpn_cubic_rectilinear_f32, f32);
-
-/// Python bindings for select functions from `interpn`.
-#[pymodule]
-#[pyo3(name = "_interpn")]
-fn interpnpy<'py>(_py: Python, m: &Bound<'py, PyModule>) -> PyResult<()> {
-    // Multilinear regular grid
-    m.add_function(wrap_pyfunction!(interpn_linear_regular_f64, m)?)?;
-    m.add_function(wrap_pyfunction!(interpn_linear_regular_f32, m)?)?;
-    m.add_function(wrap_pyfunction!(check_bounds_regular_f64, m)?)?;
-    m.add_function(wrap_pyfunction!(check_bounds_regular_f32, m)?)?;
-    // Multilinear rectilinear grid
-    m.add_function(wrap_pyfunction!(interpn_linear_rectilinear_f64, m)?)?;
-    m.add_function(wrap_pyfunction!(interpn_linear_rectilinear_f32, m)?)?;
-    m.add_function(wrap_pyfunction!(check_bounds_rectilinear_f64, m)?)?;
-    m.add_function(wrap_pyfunction!(check_bounds_rectilinear_f32, m)?)?;
-    // Multicubic with regular grid
-    m.add_function(wrap_pyfunction!(interpn_cubic_regular_f64, m)?)?;
-    m.add_function(wrap_pyfunction!(interpn_cubic_regular_f32, m)?)?;
-    // Multicubic with rectilinear grid
-    m.add_function(wrap_pyfunction!(interpn_cubic_rectilinear_f64, m)?)?;
-    m.add_function(wrap_pyfunction!(interpn_cubic_rectilinear_f32, m)?)?;
-    Ok(())
+    data[i]
 }
