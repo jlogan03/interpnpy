@@ -1,4 +1,5 @@
 import gc
+import os
 from pathlib import Path
 
 from timeit import timeit
@@ -12,6 +13,13 @@ from interpn import (
     MulticubicRegular,
     MulticubicRectilinear,
 )
+
+# Toggle SciPy/NumPy baselines via environment for PGO workloads.
+RUN_INTERPN_ONLY = os.environ.get("INTERPNPY_INTERPN_ONLY", "").lower() in {
+    "1",
+    "true",
+    "yes",
+}
 
 
 def bench_6_dims_1_obs():
@@ -60,9 +68,7 @@ def bench_6_dims_1_obs():
         "InterpN MultilinearRegular": lambda p: regular_interpn.eval(p, out),
         "InterpN MultilinearRectilinear": lambda p: rectilinear_interpn.eval(p, out),
         "InterpN MulticubicRegular": lambda p: cubic_regular_interpn.eval(p, out),
-        "InterpN MulticubicRectilinear": lambda p: cubic_rectilinear_interpn.eval(
-            p, out
-        ),
+        "InterpN MulticubicRectilinear": lambda p: cubic_rectilinear_interpn.eval(p, out),
         "numpy interp": lambda p: np.interp(p[0], grids[0], zgrid),  # 1D only
     }
 
@@ -81,6 +87,8 @@ def bench_6_dims_1_obs():
 
     print("\nInterpolation in sequential order")
     for name, func in interps.items():
+        if RUN_INTERPN_ONLY and not name.startswith("InterpN "):
+            continue
         if name == "numpy interp" and ndims > 1:
             continue
         p = points[name]
@@ -107,6 +115,8 @@ def bench_6_dims_1_obs():
 
     print("\nInterpolation in random order")
     for name, func in interps.items():
+        if RUN_INTERPN_ONLY and not name.startswith("InterpN "):
+            continue
         if name == "numpy interp" and ndims > 1:
             continue
         p = points1[name]
@@ -133,6 +143,8 @@ def bench_6_dims_1_obs():
 
     print("\nExtrapolation to corner region in random order")
     for name, func in interps.items():
+        if RUN_INTERPN_ONLY and not name.startswith("InterpN "):
+            continue
         if name == "numpy interp" and ndims > 1:
             continue
         p = points2[name]
@@ -162,6 +174,8 @@ def bench_6_dims_1_obs():
 
     print("\nExtrapolation to side region in random order")
     for name, func in interps.items():
+        if RUN_INTERPN_ONLY and not name.startswith("InterpN "):
+            continue
         if name == "numpy interp" and ndims > 1:
             continue
         p = points3[name]
@@ -261,6 +275,8 @@ def bench_3_dims_n_obs_unordered():
             }
 
             for name, func in interps.items():
+                if RUN_INTERPN_ONLY and not name.startswith("InterpN "):
+                    continue
                 if "cubic" in name.lower() and nobs > 10000:
                     continue
                 p = points[name]
@@ -294,6 +310,8 @@ def bench_3_dims_n_obs_unordered():
             all_throughputs_this_kind = sum([v for _, v in throughputs_this_kind], [])
             max_throughput = max(all_throughputs_this_kind)
             for i, (k, v) in enumerate(throughputs_this_kind):
+                if RUN_INTERPN_ONLY and not k.startswith("InterpN "):
+                    continue
                 normalized_throughput = np.array(v) / max_throughput
                 plt.loglog(
                     ns[: normalized_throughput.size],
@@ -402,6 +420,8 @@ def bench_6_dims_n_obs_unordered():
             }
 
             for name, func in interps.items():
+                if RUN_INTERPN_ONLY and not name.startswith("InterpN "):
+                    continue
                 p = points[name]
                 timeit(
                     lambda: func(p), setup=gc.collect, number=int(nbench / 4)
@@ -432,6 +452,8 @@ def bench_6_dims_n_obs_unordered():
             all_throughputs_this_kind = sum([v for _, v in throughputs_this_kind], [])
             max_throughput = max(all_throughputs_this_kind)
             for i, (k, v) in enumerate(throughputs_this_kind):
+                if RUN_INTERPN_ONLY and not k.startswith("InterpN "):
+                    continue
                 normalized_throughput = np.array(v) / max_throughput
                 plt.loglog(
                     ns[: normalized_throughput.size],
@@ -510,17 +532,11 @@ def bench_throughput_vs_dims():
                 "InterpN MultilinearRegular": lambda p: regular_interpn.eval(p),
                 "InterpN MultilinearRectilinear": lambda p: rectilinear_interpn.eval(p),
                 "InterpN MulticubicRegular": lambda p: cubic_regular_interpn.eval(p),
-                "InterpN MulticubicRectilinear": lambda p: cubic_rectilinear_interpn.eval(
-                    p
-                ),
+                "InterpN MulticubicRectilinear": lambda p: cubic_rectilinear_interpn.eval(p),
             }
 
             if ndims == 1:
-                np_interp = lambda p: np.interp(p[0], grids[0], zgrid)
-                interps["Numpy Interp"] = np_interp
-            else:
-                if "Numpy Interp" in interps.keys():
-                    interps.pop("Numpy Interp")
+                interps["Numpy Interp"] = lambda p: np.interp(p[0], grids[0], zgrid)
 
             if ndims == 2:
                 cubic_rbs_sp = RectBivariateSpline(
@@ -529,9 +545,6 @@ def bench_throughput_vs_dims():
                 interps["Scipy RectBivariateSpline Cubic"] = lambda p: cubic_rbs_sp(
                     *p, grid=False
                 )
-            else:
-                if "Scipy RectBivariateSpline Cubic" in interps.keys():
-                    interps.pop("Scipy RectBivariateSpline Cubic")
 
             # Interpolation in random order
             points_interpn = [np.random.permutation(x.flatten()) for x in obsgrid]
@@ -544,10 +557,12 @@ def bench_throughput_vs_dims():
                 "InterpN MultilinearRectilinear": points_interpn,
                 "InterpN MulticubicRegular": points_interpn,
                 "InterpN MulticubicRectilinear": points_interpn,
-                "Numpy Interp": points_interpn
+                "Numpy Interp": points_interpn,
             }
 
             for name, func in interps.items():
+                if RUN_INTERPN_ONLY and not name.startswith("InterpN "):
+                    continue
                 print(ndims, name)
                 p = points[name]
                 timeit(
@@ -583,6 +598,8 @@ def bench_throughput_vs_dims():
             all_throughputs_this_kind = sum([v for _, v in throughputs_this_kind], [])
             max_throughput = max(all_throughputs_this_kind)
             for i, (k, v) in enumerate(throughputs_this_kind):
+                if RUN_INTERPN_ONLY and not k.startswith("InterpN "):
+                    continue
                 normalized_throughput = np.array(v) / max_throughput
                 if k == "Scipy RectBivariateSpline Cubic":
                     plt.semilogy(
@@ -627,10 +644,13 @@ def bench_throughput_vs_dims():
         plt.savefig(Path(__file__).parent / f"../docs/throughput_vs_dims_{nobs}_obs.svg")
         plt.show(block=False)
 
-
-if __name__ == "__main__":
+def main():
     bench_throughput_vs_dims()
     bench_6_dims_1_obs()
     bench_6_dims_n_obs_unordered()
     bench_3_dims_n_obs_unordered()
     plt.show(block=True)
+
+
+if __name__ == "__main__":
+    main()

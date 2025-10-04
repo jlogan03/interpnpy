@@ -94,6 +94,8 @@ def run_benchmark(bench_script: Path, profiles_dir: Path) -> None:
     env = os.environ.copy()
     env["LLVM_PROFILE_FILE"] = str(profiles_dir / "interpn-%p-%m.profraw")
     env.setdefault("MPLBACKEND", "Agg")
+    if bench_script.name == "bench_cpu.py":
+        env["INTERPNPY_INTERPN_ONLY"] = "1"
     run([sys.executable, str(bench_script)], env=env, cwd=ROOT)
 
 
