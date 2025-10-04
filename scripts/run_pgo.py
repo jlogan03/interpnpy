@@ -82,11 +82,11 @@ def extension_destinations() -> list[Path]:
         return next((s for s in EXTENSION_SUFFIXES if "abi3" in s), EXTENSION_SUFFIXES[0])
 
     found: list[Path] = []
-    spec = find_spec("interpn._interpn")
+    spec = find_spec("interpn.interpn")
     if spec and spec.origin:
         found.append(Path(spec.origin))
 
-    extension_name = f"_interpn{suffix()}"
+    extension_name = f"interpn{suffix()}"
     for base in (ROOT / "src" / "interpn", ROOT / "interpn"):
         found.append(base / extension_name)
 
