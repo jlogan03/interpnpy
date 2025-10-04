@@ -53,3 +53,8 @@ The linear methods all use roughly the same amount of RAM during evaluation. In 
 The memory profiler picks up a large amount of RAM that is not actually part of the function evaluation, but belongs to the outer process. As a result, all methods show a bogus memory usage floor of about 97MB.
 
 ![ND memory usage](./ram_vs_dims.svg)
+
+----
+## Profile-Guided Optimisation
+
+You can rebuild the Python extension with profile-guided optimisation enabled by running `python scripts/run_pgo.py`. The helper relies on `cargo-pgo` (install it with `cargo install cargo-pgo`) and executes `scripts/profile_workload.py`, which exercises each InterpN method for 1 and 1000 observation points across 1–8 dimensions to gather representative profiles, before merging the resulting `.profraw` files and copying the optimised library back into the package. Use `--bench test/bench_cpu.py` to run the comprehensive SciPy-based benchmark instead, and install the optional benchmarking dependencies first with `uv pip install '.[bench]'` if you need that workload.

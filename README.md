@@ -33,6 +33,16 @@ See [here](https://interpnpy.readthedocs.io/en/latest/perf/) for more info about
 pip install interpn
 ```
 
+## Profile-Guided Optimisation
+
+To build the extension with profile-guided optimisation, using the lightweight `scripts/profile_workload.py` workload (1 and 1000 observation points across 1–8 dimensions for every InterpN method) by default:
+
+1. Ensure the cargo subcommand is installed: `cargo install cargo-pgo`
+2. Install the optional benchmarking dependencies if you plan to run the full SciPy benchmarks: `uv pip install '.[bench]'`
+3. Run the automation script: `python scripts/run_pgo.py`
+
+The helper uses `cargo-pgo` to build an instrumented extension, executes `scripts/profile_workload.py` to generate LLVM `.profraw` files, and then rebuilds the module with the merged profile data before copying the optimised library into `interpn/_interpn*.so`. Pass `--bench test/bench_cpu.py` to reuse the original comprehensive workload. Using `--skip-final-build` leaves the instrumented library in place alongside the collected profiles.
+
 ## Example: Available Methods
 
 ```python
