@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 from importlib.machinery import EXTENSION_SUFFIXES
+from importlib.util import find_spec
 from pathlib import Path
 from typing import Sequence
 
@@ -74,19 +75,40 @@ def find_cdylib(target_dir: Path) -> Path:
     raise SystemExit(f"Could not locate compiled cdylib in {target_dir}.")
 
 
-def extension_destination() -> Path:
-    """Derive the expected extension filename inside the package."""
-    suffix = next((s for s in EXTENSION_SUFFIXES if "abi3" in s), EXTENSION_SUFFIXES[0])
-    return ROOT / "interpn" / f"_interpn{suffix}"
+def extension_destinations() -> list[Path]:
+    """Derive every plausible location for the extension inside the package."""
+
+    def suffix() -> str:
+        return next((s for s in EXTENSION_SUFFIXES if "abi3" in s), EXTENSION_SUFFIXES[0])
+
+    found: list[Path] = []
+    spec = find_spec("interpn._interpn")
+    if spec and spec.origin:
+        found.append(Path(spec.origin))
+
+    extension_name = f"_interpn{suffix()}"
+    for base in (ROOT / "src" / "interpn", ROOT / "interpn"):
+        found.append(base / extension_name)
+
+    unique: list[Path] = []
+    seen: set[Path] = set()
+    for candidate in found:
+        if candidate not in seen:
+            seen.add(candidate)
+            unique.append(candidate)
+    if not unique:
+        raise SystemExit("Failed to determine a destination for the compiled extension.")
+    return unique
 
 
 def install_artifact(target_dir: Path) -> Path:
     """Copy the compiled library into the Python package."""
     artifact = find_cdylib(target_dir)
-    destination = extension_destination()
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(artifact, destination)
-    return destination
+    destinations = extension_destinations()
+    for destination in destinations:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(artifact, destination)
+    return destinations[0]
 
 
 def run_benchmark(bench_script: Path, profiles_dir: Path) -> None:

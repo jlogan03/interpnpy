@@ -3,7 +3,7 @@ Re-exported raw PyO3/Maturin bindings to Rust functions.
 Using these can yield some performance benefit at the expense of ergonomics.
 """
 
-from ._interpn import (
+from .interpn import (
     interpn_linear_regular_f64,
     interpn_linear_regular_f32,
     interpn_linear_rectilinear_f64,

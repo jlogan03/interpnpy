@@ -14,7 +14,7 @@ from pydantic import (
 
 from .serialization import Array, ArrayF32, ArrayF64
 
-from ._interpn import (
+from .interpn import (
     interpn_cubic_rectilinear_f64,
     interpn_cubic_rectilinear_f32,
     check_bounds_rectilinear_f64,

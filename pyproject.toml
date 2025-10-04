@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "interpn"
-version = "0.2.6"
+version = "0.6.0"
 repository = "https://github.com/jlogan03/interpnpy"
 documentation = "https://interpn.readthedocs.io/"
 description = "N-dimensional interpolation/extrapolation methods"
