@@ -44,3 +44,5 @@ doc = [
 [tool.maturin]
 features = ["pyo3/extension-module"]
 module-name = "interpn._interpn"
+python-packages = ["interpn"]
+python-source = "src"
