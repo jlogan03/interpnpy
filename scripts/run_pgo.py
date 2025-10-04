@@ -92,7 +92,7 @@ def install_artifact(target_dir: Path) -> Path:
 def run_benchmark(bench_script: Path, profiles_dir: Path) -> None:
     """Execute the Python workload while directing LLVM profiles to profiles_dir."""
     env = os.environ.copy()
-    env["LLVM_PROFILE_FILE"] = str(profiles_dir / "interpn-%p.profraw")
+    env["LLVM_PROFILE_FILE"] = str(profiles_dir / "interpn-%p-%m.profraw")
     env.setdefault("MPLBACKEND", "Agg")
     run([sys.executable, str(bench_script)], env=env, cwd=ROOT)
 
