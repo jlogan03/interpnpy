@@ -8,29 +8,26 @@ import numpy as np
 from interpn import MulticubicRectilinear, MulticubicRegular, MultilinearRectilinear, MultilinearRegular
 
 _OBSERVATION_COUNTS = (1, 1000)
-_MAX_DIMS = 8
+_MAX_DIMS = 6
 _GRID_SIZE = 4
 
 
 def _observation_points(
     rng: np.random.Generator, ndims: int, nobs: int, dtype: np.dtype
 ) -> tuple[list[np.ndarray], list[np.ndarray]]:
-    """Generate observation points inside the grid domain."""
+    """Generate observation points inside and outside the grid domain.
+    The fraction of points outside the domain here will set the relative weight of
+    extrapolation branches.
+    """
     m = max(int(float(nobs) ** (1.0 / ndims) + 2.0), 2)
-    axes = [np.linspace(-0.99, 0.99, m, dtype=dtype) for _ in range(ndims)]
+    axes = [rng.uniform(-1.1, 1.1, m).astype(dtype) for _ in range(ndims)]
     mesh = np.meshgrid(*axes, indexing="ij")
     points = [axis.flatten()[:nobs].copy() for axis in mesh]
-    shuffled = [rng.permutation(axis) for axis in points]
-    return points, shuffled
-
-
-def _extrapolation_points(points: list[np.ndarray], dtype: np.dtype, offset: float) -> list[np.ndarray]:
-    """Create extrapolation points by shifting coordinates outside the grid."""
-    delta = np.asarray(offset, dtype=dtype)
-    return [axis + delta for axis in points]
+    return points
 
 
 def _evaluate(interpolator, points: list[np.ndarray]) -> None:
+    # Run with and without preallocated output
     interpolator.eval(points)
     out = np.empty_like(points[0])
     interpolator.eval(points, out)
@@ -64,19 +61,17 @@ def main() -> None:
             )
 
             for nobs in _OBSERVATION_COUNTS:
-                base_points, shuffled_points = _observation_points(rng, ndims, nobs, dtype)
-                outside_points = _extrapolation_points(base_points, dtype, offset=2.5)
+                points = _observation_points(rng, ndims, nobs, dtype)
 
-                for points in (base_points, shuffled_points, outside_points):
-                    for interpolator in (
-                        linear_regular,
-                        linear_rect,
-                        cubic_regular,
-                        cubic_rect,
-                    ):
-                        _evaluate(interpolator, points)
+                for interpolator in (
+                    linear_regular,
+                    linear_rect,
+                    cubic_regular,
+                    cubic_rect,
+                ):
+                    _evaluate(interpolator, points)
 
-            print(f"Completed dtype={np.dtype(dtype).name} ndims={ndims}")
+                    print(f"Completed {type(interpolator).__name__} dtype={np.dtype(dtype).name} ndims={ndims} nobs={nobs}")
 
 
 if __name__ == "__main__":
