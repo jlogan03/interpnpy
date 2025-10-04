@@ -2,7 +2,7 @@ import gc
 import os
 from pathlib import Path
 
-from timeit import timeit
+from timeit import Timer, timeit
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator, RectBivariateSpline
 import matplotlib.pyplot as plt
@@ -20,6 +20,25 @@ RUN_INTERPN_ONLY = os.environ.get("INTERPNPY_INTERPN_ONLY", "").lower() in {
     "true",
     "yes",
 }
+
+TARGET_SAMPLE_SECONDS = 1.0
+MAX_TIMER_LOOPS = 1_000_000
+
+
+def average_call_time(func, points, target_seconds: float = TARGET_SAMPLE_SECONDS) -> float:
+    """Measure average execution time for func(points) using ~target_seconds of samples."""
+    timer = Timer(lambda: func(points))
+    gc.collect()
+    calibrated_loops, total = timer.autorange()
+    avg = total / calibrated_loops if total else 0.0
+    fallback_loops = max(1, min(MAX_TIMER_LOOPS, calibrated_loops))
+    if avg == 0.0:
+        iterations = fallback_loops
+    else:
+        iterations = max(1, min(MAX_TIMER_LOOPS, int(target_seconds / avg) or 1))
+    gc.collect()
+    total = timer.timeit(iterations)
+    return total / iterations
 
 
 def bench_6_dims_1_obs():
@@ -188,8 +207,6 @@ def bench_6_dims_1_obs():
 
 
 def bench_3_dims_n_obs_unordered():
-    nbench = 30  # Bench iterations
-
     for preallocate in [False, True]:
         ndims = 3  # Number of grid dimensions
         ngrid = 20  # Size of grid on each dimension
@@ -226,7 +243,7 @@ def bench_3_dims_n_obs_unordered():
         # ns = np.logspace(0, 5, 10, base=10)
         # ns = [int(x) for x in ns]
         # ns = sorted(list(set(ns)))
-        ns = [1, 10, 50, 100, 500, 1000, 10000, 100000]
+        ns = [1, 10, 50, 100, 500, 1000, 10000]
         # ns = [1, 10, 100, 1000, 10000, 50000, 100000]
         print("\nThroughput plotting")
         print(ns)
@@ -280,11 +297,8 @@ def bench_3_dims_n_obs_unordered():
                 if "cubic" in name.lower() and nobs > 10000:
                     continue
                 p = points[name]
-                timeit(
-                    lambda: func(p), setup=gc.collect, number=int(nbench / 4)
-                )  # warmup
-                t = timeit(lambda: func(p), setup=gc.collect, number=nbench) / nbench
-                throughput = nobs / t
+                avg_time = average_call_time(func, p)
+                throughput = nobs / avg_time
                 throughputs[name].append(throughput)
 
         kinds = {
@@ -335,8 +349,6 @@ def bench_3_dims_n_obs_unordered():
 
 
 def bench_6_dims_n_obs_unordered():
-    nbench = 10  # Bench iterations
-
     for preallocate in [False, True]:
         ndims = 6  # Number of grid dimensions
         ngrid = 4  # Size of grid on each dimension
@@ -372,7 +384,7 @@ def bench_6_dims_n_obs_unordered():
         }
         # ns = np.logspace(0, 4, 40, base=10)
         # ns = [int(x) for x in ns]
-        ns = [1, 10, 50, 100, 500, 1000, 10000, 100000]
+        ns = [1, 10, 50, 100, 500, 1000, 10000]
         print("\nThroughput plotting")
         print(ns)
         for nobs in ns:
@@ -423,11 +435,8 @@ def bench_6_dims_n_obs_unordered():
                 if RUN_INTERPN_ONLY and not name.startswith("InterpN "):
                     continue
                 p = points[name]
-                timeit(
-                    lambda: func(p), setup=gc.collect, number=int(nbench / 4)
-                )  # warmup
-                t = timeit(lambda: func(p), setup=gc.collect, number=nbench) / nbench
-                throughput = nobs / t
+                avg_time = average_call_time(func, p)
+                throughput = nobs / avg_time
                 throughputs[name].append(throughput)
 
         kinds = {
