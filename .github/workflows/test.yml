@@ -34,7 +34,13 @@ jobs:
       run: source ../env/bin/activate; ruff check ./interpn
     - name: Static typing - python
       run: source ../env/bin/activate; pyright ./interpn
-    - name: Test - python
+    - name: Test - python (without PGO)
       run: |
         source ../env/bin/activate; pytest .
         python ./examples/cubic_comparison.py test
+    - name: Profile-Guided Optimization (PGO)
+      run: |
+        source ../env/bin/activate; python ./scripts/run_pgo.py --build-wheel
+    - name: Test - python (with PGO)
+      run: |
+        source ../env/bin/activate; pytest .
