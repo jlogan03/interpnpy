@@ -9,7 +9,7 @@ from interpn import MulticubicRectilinear, MulticubicRegular, MultilinearRectili
 
 _OBSERVATION_COUNTS = (1,3)
 _MAX_DIMS = 4
-_GRID_SIZE = 100
+_GRID_SIZE = 20
 
 
 def _observation_points(
@@ -28,14 +28,14 @@ def _observation_points(
 
 def _evaluate(interpolator, points: list[np.ndarray]) -> None:
     # Without preallocated output
-    interpolator.eval(points)
-    # With preallocated output
-    # out = np.empty_like(points[0])
-    # interpolator.eval(points, out)
+    # interpolator.eval(points)
+    # With preallocated output - we don't need to profile the allocator
+    out = np.empty_like(points[0])
+    interpolator.eval(points, out)
 
 
 def main() -> None:
-    rng = np.random.default_rng(0)
+    rng = np.random.default_rng(2394587)
 
     for dtype in (np.float64, np.float32):
         for ndims in range(1, _MAX_DIMS + 1):
