@@ -22,7 +22,7 @@ itertools = { version = "0.14.0", optional = true }
 
 [dev-dependencies]
 rand = "0.9.2"
-criterion = "0.5.1"
+criterion = "0.7.0"
 ndarray = "0.16.1"
 
 [features]
@@ -34,13 +34,13 @@ std = ["itertools"]
 opt-level = 3
 codegen-units = 1
 lto = true
-#strip = true
+strip = true
 overflow-checks = true
 
 [profile.dev]
-opt-level = 3
-codegen-units = 1
-lto = true
+opt-level = 2
+codegen-units = 16
+lto = false
 
 [[bench]]
 name = "bench"

@@ -21,8 +21,8 @@ RUN_INTERPN_ONLY = os.environ.get("INTERPNPY_INTERPN_ONLY", "").lower() in {
     "yes",
 }
 
-TARGET_SAMPLE_SECONDS = 1.0
-MAX_TIMER_LOOPS = 1_000_000
+TARGET_SAMPLE_SECONDS = 0.5
+MAX_TIMER_LOOPS = 1_000_000_000
 
 
 def average_call_time(func, points, target_seconds: float = TARGET_SAMPLE_SECONDS) -> float:
@@ -41,11 +41,11 @@ def average_call_time(func, points, target_seconds: float = TARGET_SAMPLE_SECOND
     return total / iterations
 
 
-def bench_6_dims_1_obs():
+def bench_4_dims_1_obs():
     nbench = 30  # Bench iterations
     preallocate = False  # Whether to preallocate output array for InterpN
-    ndims = 6  # Number of grid dimensions
-    ngrid = 4  # Size of grid on each dimension
+    ndims = 4  # Number of grid dimensions
+    ngrid = 20  # Size of grid on each dimension
     nobs = int(1)  # Number of observation points
     m = max(int(float(nobs) ** (1.0 / ndims) + 2), 2)
 
@@ -114,7 +114,7 @@ def bench_6_dims_1_obs():
         timeit(lambda: func(p), number=nbench)  # warmup
         t = timeit(lambda: func(p), number=nbench) / nbench
         throughput = nobs / t
-        print("----")
+        print(f"\n---- {ndims} Dims")
         print(f"Method: {name}")
         print(f"Time {t:.2e} s")
         print(f"Throughput {throughput:.2e} #/s")
@@ -142,7 +142,7 @@ def bench_6_dims_1_obs():
         timeit(lambda: func(p), number=nbench)  # warmup
         t = timeit(lambda: func(p), number=nbench) / nbench
         throughput = nobs / t
-        print("----")
+        print(f"\n---- {ndims} Dims")
         print(f"Method: {name}")
         print(f"Time {t:.2e} s")
         print(f"Throughput {throughput:.2e} #/s")
@@ -170,7 +170,7 @@ def bench_6_dims_1_obs():
         timeit(lambda: func(p), number=nbench)  # warmup
         t = timeit(lambda: func(p), number=nbench) / nbench
         throughput = nobs / t
-        print("----")
+        print(f"\n---- {ndims} Dims")
         print(f"Method: {name}")
         print(f"Time {t:.2e} s")
         print(f"Throughput {throughput:.2e} #/s")
@@ -200,7 +200,7 @@ def bench_6_dims_1_obs():
         p = points3[name]
         t = timeit(lambda: func(p), number=nbench) / nbench
         throughput = nobs / t
-        print("----")
+        print(f"\n---- {ndims} Dims")
         print(f"Method: {name}")
         print(f"Time {t:.2e} s")
         print(f"Throughput {throughput:.2e} #/s")
@@ -348,10 +348,10 @@ def bench_3_dims_n_obs_unordered():
         plt.show(block=False)
 
 
-def bench_6_dims_n_obs_unordered():
+def bench_4_dims_n_obs_unordered():
     for preallocate in [False, True]:
-        ndims = 6  # Number of grid dimensions
-        ngrid = 4  # Size of grid on each dimension
+        ndims = 4  # Number of grid dimensions
+        ngrid = 20  # Size of grid on each dimension
 
         grids = [np.linspace(-1.0, 1.0, ngrid) for _ in range(ndims)]
         xgrid = np.meshgrid(*grids, indexing="ij")
@@ -451,7 +451,7 @@ def bench_6_dims_n_obs_unordered():
         linestyles = ["dotted", "-", "--", "-.", (0, (3, 1, 1, 1, 1, 1))]
         alpha = [0.5, 1.0, 1.0, 1.0, 1.0]
         _fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
-        plt.suptitle("Interpolation on 4x...x4 6D Grid")
+        plt.suptitle("Interpolation on 20x...x20 4D Grid")
         for i, kind in enumerate(["Linear", "Cubic"]):
             # plt.figure()
             plt.sca(axes[i])
@@ -481,7 +481,7 @@ def bench_6_dims_n_obs_unordered():
 
         plt.tight_layout()
         with_alloc_string = "_prealloc" if preallocate else ""
-        plt.savefig(Path(__file__).parent / f"../docs/6d_throughput_vs_nobs{with_alloc_string}.svg")
+        plt.savefig(Path(__file__).parent / f"../docs/4d_throughput_vs_nobs{with_alloc_string}.svg")
         plt.show(block=False)
 
 
@@ -655,8 +655,8 @@ def bench_throughput_vs_dims():
 
 def main():
     bench_throughput_vs_dims()
-    bench_6_dims_1_obs()
-    bench_6_dims_n_obs_unordered()
+    bench_4_dims_1_obs()
+    bench_4_dims_n_obs_unordered()
     bench_3_dims_n_obs_unordered()
     plt.show(block=True)
 
