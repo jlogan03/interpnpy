@@ -41,3 +41,10 @@ overflow-checks = true
 opt-level = 3
 codegen-units = 1
 lto = true
+
+[[bench]]
+name = "bench"
+harness = false
+
+[lints.rust]
+unsafe_code = "forbid"
