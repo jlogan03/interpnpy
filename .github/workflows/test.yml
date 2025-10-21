@@ -14,7 +14,11 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
+    - uses: astral-sh/setup-uv@v7
+      with:
+        python-version: ${{ matrix.python-version }}
+        enable-cache: false
+
     # Rust
     - name: Format
       run: cargo fmt --check --verbose
@@ -24,17 +28,12 @@ jobs:
       run: cargo build --verbose
     # Python
     - name: Install - python
-      run: |
-        python -m venv ../env
-        source ../env/bin/activate
-        pip install maturin
-        maturin develop
-        pip install -e .[test]
+      run: uv sync --extra test
     - name: Format - python
-      run: source ../env/bin/activate; ruff check ./interpn
+      run: ucx ruff check ./interpn
     - name: Static typing - python
-      run: source ../env/bin/activate; pyright ./interpn
+      run: uvx pyright ./interpn
     - name: Test - python
       run: |
-        source ../env/bin/activate; pytest .
-        python ./examples/cubic_comparison.py test
+        uv run --no-sync pytest .
+        uv run --no-sync examples/cubic_comparison.py test
