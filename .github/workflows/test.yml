@@ -12,6 +12,13 @@ jobs:
       matrix:
         target: [x86_64, aarch64]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        sync-args: [null]
+
+        include:
+          - target: x86_64
+            python-version: "3.9.0"
+            sync-args: --resolution=lowest-direct
+
     steps:
     - uses: actions/checkout@v3
     - uses: astral-sh/setup-uv@v7
@@ -28,7 +35,7 @@ jobs:
       run: cargo build --verbose
     # Python
     - name: Install - python
-      run: uv sync --extra test
+      run: uv sync --extra test ${{ matrix.sync-args }}
     - name: Format - python
       run: ucx ruff check ./interpn
     - name: Static typing - python

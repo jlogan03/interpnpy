@@ -16,7 +16,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-    "numpy >= 2",
+    "numpy >= 1.19.3",
     "pydantic >= 2.5.2",
 ]
 
@@ -44,3 +44,6 @@ doc = [
 [tool.maturin]
 features = ["pyo3/extension-module"]
 module-name = "interpn._interpn"
+
+[tool.uv]
+no-build-package = [ "numpy", "pydantic-core", "scipy", "matplotlib", "pyright", "coverage" ]
