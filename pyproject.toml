@@ -20,7 +20,7 @@ dependencies = [
     "pydantic >= 2.5.2",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 test = [
     "pytest >= 8.0",
     "coverage >= 7.3.2",

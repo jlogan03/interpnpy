@@ -28,7 +28,7 @@ jobs:
       run: cargo build --verbose
     # Python
     - name: Install - python
-      run: uv sync --extra test
+      run: uv sync --group test
     - name: Format - python
       run: ucx ruff check ./interpn
     - name: Static typing - python
